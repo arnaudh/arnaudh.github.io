@@ -3,6 +3,10 @@ layout: page
 excerpt: "About Me..."
 ---
 
+Hello index my old friend
+
+{% include footer.html %}
+
 Welcome to my page.
 
 ## Current Interests and Projects:
