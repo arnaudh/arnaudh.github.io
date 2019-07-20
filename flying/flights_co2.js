@@ -6144,23 +6144,38 @@ console.log('flightsData', flightsData);
 //     return distance(airports[pair[0]], airports[pair[1]])
 // });
 
-distances_km = flightsData.filter(d => d.date >= oneYearAgo).map(flightData => {
-  return distance(flightData.fromAirportCode, flightData.toAirportCode);
+flightData_with_CO2 = flightsData.filter(d => d.date >= oneYearAgo).map(flightData => {
+  flightData.distance = distance(flightData.fromAirportCode, flightData.toAirportCode);
+  flightData.CO2_tons_3 = (164 + 3268 * (Math.pow(1.0000791, flightData.distance)-1)) / 1000;
+  return flightData;
 });
 
-total_CO2_tons_1 = sum(distances_km.map(d => d * 0.275)) / 1000; /* 250kg per hour -> 0.275kg per km https://www.carbonindependent.org/22.html */
+flightData_with_CO2_sorted_by_CO2 = flightData_with_CO2.sort((a, b) => (a.CO2_tons_3>b.CO2_tons_3) ? 1 : -1);
 
-total_CO2_tons_2 = sum(distances_km.map(d => 104 + 0.34 * d)) / 1000; /* linear formula http://www.co2list.org/files/carbon.htm */
-total_CO2_tons_3 = sum(distances_km.map(d => 164 + 3268 * (Math.pow(1.0000791, d)-1))) / 1000; /* exponential formula http://www.co2list.org/files/carbon.htm */
+total_CO2_tons_3 = Math.round(sum(flightData_with_CO2.map(f => f.CO2_tons_3)) * 10) / 10;
+
+console.log('flightData_with_CO2_sorted_by_CO2', flightData_with_CO2_sorted_by_CO2);
+
+// // (optimist?) linear formula 250kg per hour -> 0.275kg per km https://www.carbonindependent.org/22.html
+// CO2_tons_1 = distances_km.map(d => d * 0.275 / 1000);
+// total_CO2_tons_1 = sum(CO2_tons_1);
+
+// // linear formula http://www.co2list.org/files/carbon.htm
+// CO2_tons_2  = distances_km.map(d => (104 + 0.34 * d) / 1000);
+// total_CO2_tons_2 = sum(CO2_tons_2); 
+
+// // exponential formula http://www.co2list.org/files/carbon.htm
+// CO2_tons_3 = distances_km.map(d => (164 + 3268 * (Math.pow(1.0000791, d)-1)) / 1000);
+// total_CO2_tons_3 = sum(CO2_tons_3);
 
 
-total_CO2_tons_1 = Math.round(total_CO2_tons_1 * 10)/10;
-total_CO2_tons_2 = Math.round(total_CO2_tons_2 * 10)/10;
-total_CO2_tons_3 = Math.round(total_CO2_tons_3 * 10)/10;
+// total_CO2_tons_1 = Math.round(total_CO2_tons_1 * 10)/10;
+// total_CO2_tons_2 = Math.round(total_CO2_tons_2 * 10)/10;
+// total_CO2_tons_3 = Math.round(total_CO2_tons_3 * 10)/10;
 
-console.log(`total_CO2_tons_1: ${total_CO2_tons_1} tons`);
-console.log(`total_CO2_tons_2: ${total_CO2_tons_2} tons`);
-console.log(`total_CO2_tons_3: ${total_CO2_tons_3} tons`);
+// console.log(`total_CO2_tons_1: ${total_CO2_tons_1} tons`);
+// console.log(`total_CO2_tons_2: ${total_CO2_tons_2} tons`);
+// console.log(`total_CO2_tons_3: ${total_CO2_tons_3} tons`);
 
 // this number is projected to have climbed to a record 37.1 gigatonnes CO2 in 2018 https://www.wri.org/blog/2018/12/new-global-co2-emissions-numbers-are-they-re-not-good
 // world population 7.5 billion in 2018
@@ -6175,6 +6190,52 @@ global_average_CO2_tons_per_capita_2018 = 4.9
 
 // http://www.ecocivilization.info/three-tons-carbon-dioxide-per-person-per-year.html
 // 3 tons
+
+
+// // https://stackoverflow.com/questions/3080421/javascript-color-gradient
+// function hex (c) {
+//   var s = "0123456789abcdef";
+//   var i = parseInt (c);
+//   if (i == 0 || isNaN (c))
+//     return "00";
+//   i = Math.round (Math.min (Math.max (0, i), 255));
+//   return s.charAt ((i - i % 16) / 16) + s.charAt (i % 16);
+// }
+// /* Convert an RGB triplet to a hex string */
+// function convertToHex (rgb) {
+//   return hex(rgb[0]) + hex(rgb[1]) + hex(rgb[2]);
+// }
+// /* Remove '#' in color hex string */
+// function trim (s) { return (s.charAt(0) == '#') ? s.substring(1, 7) : s }
+// /* Convert a hex string to an RGB triplet */
+// function convertToRGB (hex) {
+//   var color = [];
+//   color[0] = parseInt ((trim(hex)).substring (0, 2), 16);
+//   color[1] = parseInt ((trim(hex)).substring (2, 4), 16);
+//   color[2] = parseInt ((trim(hex)).substring (4, 6), 16);
+//   return color;
+// }
+// function generateColorGradient(colorStart,colorEnd,colorCount){
+//   // The beginning of your gradient
+//   var start = convertToRGB (colorStart);
+//   // The end of your gradient
+//   var end   = convertToRGB (colorEnd);    
+//   // The number of colors to compute
+//   var len = colorCount;
+//   //Alpha blending amount
+//   var alpha = 0.0;
+//   var saida = [];
+//   for (i = 0; i < len; i++) {
+//     var c = [];
+//     alpha += (1.0/len);
+//     c[0] = start[0] * alpha + (1 - alpha) * end[0];
+//     c[1] = start[1] * alpha + (1 - alpha) * end[1];
+//     c[2] = start[2] * alpha + (1 - alpha) * end[2];
+//     saida.push(convertToHex (c)); 
+//   }
+//   return saida.reverse(); 
+// }
+// let colorGradient = generateColorGradient('#FFFFFF', '#000000', flightData_with_CO2_sorted_by_CO2.length);
 
 
 
@@ -6201,14 +6262,36 @@ loadScript("https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js
     let ctx = canvas.getContext('2d');
 
     let barChartData = {
-      labels: [['Your emissions', 'due to flying', 'the past 12 months'], ['Global average emissions', 'per capita', '2018']],
-      datasets: [{
+      labels: [
+        // ['Your emissions', 'due to flying', 'in the past 12 months'],
+        // ['Your emissions', 'due to flying', 'in the past 12 months'],
+        ['Your emissions', 'due to flying', 'in the past 12 months'],
+        ['Global average emissions', 'per capita 2018']
+      ],
+      datasets: [
+          {
             // label: 'Dataset 1',
             // backgroundColor: color(window.chartColors.red).alpha(0.5).rgbString(),
             // borderColor: window.chartColors.red,
             borderWidth: 1,
-            data: [total_CO2_tons_3, global_average_CO2_tons_per_capita_2018]
+            data: [
+              // total_CO2_tons_1,
+              // total_CO2_tons_2,
+              total_CO2_tons_3,
+              // 0,
+              global_average_CO2_tons_per_capita_2018
+            ],
+            backgroundColor: '#BBB' // grey
           }]
+          // .concat(flightData_with_CO2_sorted_by_CO2.map((flightData, i) => {
+          //   console.log("COLOR USED", colorGradient[i]);
+          //   return {
+          //     data: [flightData.CO2_tons_3],
+          //     backgroundColor: '#'+colorGradient[i],
+          //     label: flightData.fromAirportCode,
+          //     borderColor: '#FFFFFF'
+          //   }
+          // }))
         };
 
         window.myBar = new Chart(ctx, {
@@ -6222,7 +6305,12 @@ loadScript("https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js
             },
             tooltips: {
               callbacks: {
-                label: tooltipItem => `${tooltipItem.yLabel} tons`, 
+                label: tooltipItem => {
+                  console.log('HEEERE', tooltipItem, flightData_with_CO2_sorted_by_CO2, tooltipItem.datasetIndex);
+                  flightData = flightData_with_CO2_sorted_by_CO2[tooltipItem.datasetIndex-1];
+                  return `${flightData.fromAirportCode} -> ${flightData.toAirportCode}: ${flightData.CO2_tons_3.toFixed(2)} tons`;
+                  // return `HERE ${tooltipItem.yLabel} tons`;
+                }, 
                 title: () => null,
               }
             },
@@ -6232,7 +6320,9 @@ loadScript("https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js
             },
 
             scales: {
+              xAxes: [{ stacked: true }],
               yAxes: [{
+                stacked: true,
                 scaleLabel: {
                   display: false,
                   labelString: 'CO₂ (tons)'
