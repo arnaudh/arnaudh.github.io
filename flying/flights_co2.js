@@ -6082,14 +6082,14 @@ const airportsLatLon = {
 function distance(airportCode1, airportCode2) {
   [lat1,lon1] = airportsLatLon[airportCode1];
   [lat2,lon2] = airportsLatLon[airportCode2];
-    var R = 6371; // km
-    var dLat = (lat2-lat1) * Math.PI / 180;
-    var dLon = (lon2-lon1) * Math.PI / 180;
-    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    let R = 6371; // km
+    let dLat = (lat2-lat1) * Math.PI / 180;
+    let dLon = (lon2-lon1) * Math.PI / 180;
+    let a = Math.sin(dLat/2) * Math.sin(dLat/2) +
     Math.cos(lat1 * Math.PI / 180 ) * Math.cos(lat2 * Math.PI / 180 ) *
     Math.sin(dLon/2) * Math.sin(dLon/2);
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    var d = R * c;
+    let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    let d = R * c;
     return Math.round(d);
   }
 
@@ -6180,8 +6180,8 @@ global_average_CO2_tons_per_capita_2018 = 4.9
 
 function loadScript(url, callback)
 {
-  var head = document.head;
-  var script = document.createElement('script');
+  let head = document.head;
+  let script = document.createElement('script');
   script.type = 'text/javascript';
   script.src = url;
   script.onreadystatechange = callback;
@@ -6191,16 +6191,16 @@ function loadScript(url, callback)
 
 loadScript("https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js", function() {
   loadScript("https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.5.0", function() {
-    var canvas = document.createElement('canvas');
-    var searchDiv = document.getElementById('search');
+    let canvas = document.createElement('canvas');
+    let searchDiv = document.getElementById('search');
     canvas.width = searchDiv.getBoundingClientRect().width; // this is not the actual width 
     canvas.height = 400;
     // console.log('canvas', canvas);
     searchDiv.prepend(canvas);
 
-    var ctx = canvas.getContext('2d');
+    let ctx = canvas.getContext('2d');
 
-    var barChartData = {
+    let barChartData = {
       labels: [['Your emissions', 'due to flying', 'the past 12 months'], ['Global average emissions', 'per capita', '2018']],
       datasets: [{
             // label: 'Dataset 1',
