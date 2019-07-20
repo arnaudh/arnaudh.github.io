@@ -1,5 +1,5 @@
-if (window.location.startsWith("https://www.google.com/search?q=my+past+flights")) {
-  window.location = "https://www.google.com/search?q=my+past+flights";
+if (window.location.href.startsWith("https://www.google.com/search?q=my+past+flights")) {
+  window.location.href = "https://www.google.com/search?q=my+past+flights";
 };
 
 
