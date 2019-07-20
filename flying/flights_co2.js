@@ -1,7 +1,6 @@
-if (!window.location.href.startsWith("https://www.google.com/search?q=my+past+flights")) {
-  window.location.href = "https://www.google.com/search?q=my+past+flights";
+if (!window.location.href.startsWith('https://www.google.com/search?q=my+past+flights')) {
+  window.open('https://www.google.com/search?q=my+past+flights');
 };
-
 
 const airportsLatLon = {
   "GKA":[-6.081689834590001,145.391998291]
