@@ -1,3 +1,5 @@
+(function () {
+
 if (!window.location.href.startsWith('https://www.google.com/search?q=my+past+flights')) {
   window.open('https://www.google.com/search?q=my+past+flights');
 };
@@ -6248,3 +6250,4 @@ loadScript("https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js
 });
 
 
+}()); // end of the self-invoking function
