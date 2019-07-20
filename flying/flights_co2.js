@@ -1,3 +1,8 @@
+if (window.location.startsWith("https://www.google.com/search?q=my+past+flights")) {
+  window.location = "https://www.google.com/search?q=my+past+flights";
+};
+
+
 const airportsLatLon = {
   "GKA":[-6.081689834590001,145.391998291]
   ,"MAG":[-5.20707988739,145.789001465]
