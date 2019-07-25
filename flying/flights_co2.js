@@ -1,8 +1,7 @@
-(function () {
-
-if (!window.location.href.startsWith('https://www.google.com/search?q=my+past+flights')) {
-  window.open('https://www.google.com/search?q=my+past+flights');
-};
+if (typeof CO2_CALCULATION_RAN !== 'undefined') {
+  console.log('Not running CO2 Calculator script again');
+} else {
+  (function () {
 
 const airportsLatLon = {
   "GKA":[-6.081689834590001,145.391998291]
@@ -6107,6 +6106,11 @@ flightsRows = document.querySelectorAll('.pirr');
 flightsData = [...flightsRows].map(r => {
   airports = [...r.querySelectorAll('.vk_bk.ThaHId')].map(x => x.innerHTML);
   dateSelector = r.querySelector('.BCOR0c');
+  citiesSelector = r.querySelector('.bTuXH');
+
+  // console.log('TEXT', r.innerText);
+  console.log('airports', airports);
+  citiesText = citiesSelector.innerText;
   dateLine1 = dateSelector.children[0].innerText;
   dateLine2 = dateSelector.children[1].innerText;
 
@@ -6127,7 +6131,8 @@ flightsData = [...flightsRows].map(r => {
   return {
     date: date,
     fromAirportCode: airports[0],
-    toAirportCode: airports[1]
+    toAirportCode: airports[1],
+    citiesText: citiesText
   }
 });
 
@@ -6150,7 +6155,8 @@ flightData_with_CO2 = flightsData.filter(d => d.date >= oneYearAgo).map(flightDa
   return flightData;
 });
 
-flightData_with_CO2_sorted_by_CO2 = flightData_with_CO2.sort((a, b) => (a.CO2_tons_3>b.CO2_tons_3) ? 1 : -1);
+flightData_with_CO2_sorted_by_CO2 = flightData_with_CO2.sort((a, b) => (a.CO2_tons_3<b.CO2_tons_3) ? 1 : -1);
+// flightData_with_CO2_sorted_by_CO2.reverse()
 
 total_CO2_tons_3 = Math.round(sum(flightData_with_CO2.map(f => f.CO2_tons_3)) * 10) / 10;
 
@@ -6238,7 +6244,6 @@ global_average_CO2_tons_per_capita_2018 = 4.9
 // let colorGradient = generateColorGradient('#FFFFFF', '#000000', flightData_with_CO2_sorted_by_CO2.length);
 
 
-
 function loadScript(url, callback)
 {
   let head = document.head;
@@ -6250,6 +6255,8 @@ function loadScript(url, callback)
   head.appendChild(script);
 }
 
+let textColor = '#555';
+
 loadScript("https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js", function() {
   loadScript("https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.5.0", function() {
     let canvas = document.createElement('canvas');
@@ -6257,6 +6264,30 @@ loadScript("https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js
     canvas.width = searchDiv.getBoundingClientRect().width; // this is not the actual width 
     canvas.height = 400;
     // console.log('canvas', canvas);
+
+    // console.log('flightData_with_CO2_sorted_by_CO2', flightData_with_CO2_sorted_by_CO2.reverse[0]);
+    let worseFlight = flightData_with_CO2_sorted_by_CO2[0];
+    console.log('worseFlight', worseFlight);
+    let infoDiv = document.createElement('div');
+    infoDiv.innerHTML = `
+    <p>
+    * Estimate based on your flight bookings in Gmail (listed below), using the exponential formula on km per flight from <a href="http://www.co2list.org/files/carbon.htm">co2list.org</a>
+    </p>
+
+    <p>
+    † Based on the prediction of 37.1 gigatonnes CO2 emitted globally for 2018 (<a href="https://www.globalcarbonproject.org/carbonbudget/18/highlights.htm">Global Carbon Project</a>), with world population 7.5 billion
+    </p>
+
+    <table style="border: 1px solid ${textColor};">
+    <tr><th>Flight</th><th>Distance (km)</th><th>CO₂ emissions (tons per passenger)</th></tr>
+    ${flightData_with_CO2_sorted_by_CO2.map(f => `<tr><td>${f.citiesText}</td><td>${f.distance}</td><td>${f.CO2_tons_3.toFixed(2)}</td></tr>`).join('')}
+    </table>
+
+
+    `;
+    infoDiv.style.color = textColor;
+
+    searchDiv.prepend(infoDiv  );
     searchDiv.prepend(canvas);
 
     let ctx = canvas.getContext('2d');
@@ -6265,8 +6296,8 @@ loadScript("https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js
       labels: [
         // ['Your emissions', 'due to flying', 'in the past 12 months'],
         // ['Your emissions', 'due to flying', 'in the past 12 months'],
-        ['Your emissions', 'due to flying', 'in the past 12 months'],
-        ['Global average emissions', 'per capita 2018']
+        ['Your emissions', 'in the past 12 months', '(flying only)*'],
+        ['Average emissions per person', 'worldwide 2018', '(all activities)†']
       ],
       datasets: [
           {
@@ -6294,6 +6325,7 @@ loadScript("https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js
           // }))
         };
 
+        Chart.defaults.global.defaultFontColor = textColor;
         window.myBar = new Chart(ctx, {
           type: 'bar',
           data: barChartData,
@@ -6340,4 +6372,6 @@ loadScript("https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js
 });
 
 
-}()); // end of the self-invoking function
+  }()); // end self-invoking function
+  var CO2_CALCULATION_RAN = true;
+} // end if
