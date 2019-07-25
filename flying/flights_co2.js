@@ -6103,14 +6103,10 @@ oneYearAgo.setFullYear(currentDate.getFullYear() - 1);
 
 flightsRows = document.querySelectorAll('.pirr');
 
-flightsData = [...flightsRows].map(r => {
+flightsData = [...flightsRows].flatMap(r => {
   airports = [...r.querySelectorAll('.vk_bk.ThaHId')].map(x => x.innerHTML);
   dateSelector = r.querySelector('.BCOR0c');
-  citiesSelector = r.querySelector('.bTuXH');
 
-  // console.log('TEXT', r.innerText);
-  console.log('airports', airports);
-  citiesText = citiesSelector.innerText;
   dateLine1 = dateSelector.children[0].innerText;
   dateLine2 = dateSelector.children[1].innerText;
 
@@ -6128,12 +6124,21 @@ flightsData = [...flightsRows].map(r => {
   }
   date = new Date(Date.parse(`${day} ${month} ${year}`));
 
-  return {
-    date: date,
-    fromAirportCode: airports[0],
-    toAirportCode: airports[1],
-    citiesText: citiesText
+  // console.log('TEXT', r.innerText);
+  console.log('airports', airports);
+
+  flightsArray = [];
+  for (var i = 0; i < airports.length/2; i++) {
+    flightsArray.push({
+      date: date,
+      fromAirportCode: airports[2*i],
+      toAirportCode: airports[2*i+1],
+      fromAirportCity: airports[2*i], //TODO
+      toAirportCity: airports[2*i+1] //TODO
+    }); 
   }
+  console.log('flightsArray', flightsArray);
+  return flightsArray;
 });
 
 console.log('flightsData', flightsData);
@@ -6266,21 +6271,20 @@ loadScript("https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js
     // console.log('canvas', canvas);
 
     // console.log('flightData_with_CO2_sorted_by_CO2', flightData_with_CO2_sorted_by_CO2.reverse[0]);
-    let worseFlight = flightData_with_CO2_sorted_by_CO2[0];
-    console.log('worseFlight', worseFlight);
+    // let worseFlight = flightData_with_CO2_sorted_by_CO2[0];
+    // console.log('worseFlight', worseFlight);
     let infoDiv = document.createElement('div');
     infoDiv.innerHTML = `
     <p>
     * Estimate based on your flight bookings in Gmail (listed below), using the exponential formula on km per flight from <a href="http://www.co2list.org/files/carbon.htm">co2list.org</a>
     </p>
-
     <p>
     † Based on the prediction of 37.1 gigatonnes CO2 emitted globally for 2018 (<a href="https://www.globalcarbonproject.org/carbonbudget/18/highlights.htm">Global Carbon Project</a>), with world population 7.5 billion
     </p>
 
-    <table style="border: 1px solid ${textColor};">
-    <tr><th>Flight</th><th>Distance (km)</th><th>CO₂ emissions (tons per passenger)</th></tr>
-    ${flightData_with_CO2_sorted_by_CO2.map(f => `<tr><td>${f.citiesText}</td><td>${f.distance}</td><td>${f.CO2_tons_3.toFixed(2)}</td></tr>`).join('')}
+    <table style="border: 1px solid ${textColor}; margin: 20px auto">
+    <tr><th>Flight</th><th>Distance<br>(km)</th><th>CO₂ emissions<br>(tons per passenger)</th></tr>
+    ${flightData_with_CO2_sorted_by_CO2.map(f => `<tr><td>${f.fromAirportCity} to ${f.toAirportCity}</td><td style="text-align:right">${f.distance}</td><td style="text-align:right">${f.CO2_tons_3.toFixed(2)}</td></tr>`).join('')}
     </table>
 
 
@@ -6312,7 +6316,7 @@ loadScript("https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js
               // 0,
               global_average_CO2_tons_per_capita_2018
             ],
-            backgroundColor: '#BBB' // grey
+            backgroundColor: '#DDD' // grey
           }]
           // .concat(flightData_with_CO2_sorted_by_CO2.map((flightData, i) => {
           //   console.log("COLOR USED", colorGradient[i]);
@@ -6336,15 +6340,16 @@ loadScript("https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js
               display: false
             },
             tooltips: {
-              callbacks: {
-                label: tooltipItem => {
-                  console.log('HEEERE', tooltipItem, flightData_with_CO2_sorted_by_CO2, tooltipItem.datasetIndex);
-                  flightData = flightData_with_CO2_sorted_by_CO2[tooltipItem.datasetIndex-1];
-                  return `${flightData.fromAirportCode} -> ${flightData.toAirportCode}: ${flightData.CO2_tons_3.toFixed(2)} tons`;
-                  // return `HERE ${tooltipItem.yLabel} tons`;
-                }, 
-                title: () => null,
-              }
+              enabled: false
+              // callbacks: {
+                // label: tooltipItem => {
+                  // console.log('HEEERE', tooltipItem, flightData_with_CO2_sorted_by_CO2, tooltipItem.datasetIndex);
+                  // flightData = flightData_with_CO2_sorted_by_CO2[tooltipItem.datasetIndex-1];
+                  // return `${flightData.fromAirportCode} -> ${flightData.toAirportCode}: ${flightData.CO2_tons_3.toFixed(2)} tons`;
+                  // return `${tooltipItem.yLabel} tons`;
+                // }, 
+              //   title: () => null,
+              // }
             },
             title: {
               display: true,
