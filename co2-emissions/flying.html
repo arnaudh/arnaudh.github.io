@@ -27,7 +27,6 @@ Click on that bookmark, which will take you to your past flights on Google (log 
     <li>
 While on that Google page, click on the bookmark again. This will show your CO₂ emissions from past flights.
 
-<!-- <img src="images/screenshot_calculator.png" width="700"> -->
     </li>
 </ol>
 
@@ -36,25 +35,49 @@ The following animation demonstrates these steps:
 <br>
 <img src="images/screencast.gif" style="display:block;margin:auto;">
 <br>
-Having issues? See the <a href="#FAQ">FAQ</a>.
-<!-- Here is an animated GIF to illustrate: -->
+Feedback or question? Drop a line to <i>arnaaal+flights@gmail.com</i> (also checkout the <a href="#FAQ">FAQ</a> below).
 
 
 
 
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br>
 
-<h2 id="FAQ">FAQ</h2>
+<h2 id="FAQ">Frequently Asked Questions (FAQ)</h2>
 
-<h3 id="no-google-flights">Q: I can't see my past flights on Google, what's wrong?</h3>
+
+<h3>Q: How does it work?</h3>
+<p>
+If you are a Gmail user, then when you search for "my past flights" on Google you will see a list of your recent flights.
+<br><br>
+The link that you have dragged to your bookmark bar is a Javascript bookmark (a <a href="https://en.wikipedia.org/wiki/Bookmarklet">bookmarklet</a>), which when clicked on will read the flights information on the page, and calculate an estimate of your CO₂ emissions for each flight.
+The estimate is based on the exponential formula on km per flight from <a href="http://www.co2list.org/files/carbon.htm">co2list.org</a>
+</p>
+
+<h3>Q: Is my data shared in any way?</h3>
+<p>
+    No, but good on you for asking. The bookmarklet code runs in your browser, and no data is sent to any thrid party.
+    <br><br>
+    To convince yourself of that, you can switch off your internet connection just before you run the bookmarklet on the Google search page (and then closing the page before switching on the connection again).
+    <br><br>
+    If you know Javascript, you can also inspect the code yourself (it lives <a href="https://github.com/arnaudh/arnaudh.github.io/tree/master/co2-emissions">here</a>).
+</p>
+
+<h3>Q: You said 3 clicks, but it's 1 drag and 2 clicks.</h3>
+<p>
+    Sorry
+</p>
+
+
+
+<h3>Q: I can't see my past flights on Google, what's wrong?</h3>
 <p>
 For you to see your past flights on Google, you need to be logged in to your Google/Gmail account, and then search for "my past flights" on Google.
 <br><br>
-Here is a screenshot when <em>not</em> logged in:
+Here is a screenshot of the search results when <em>not</em> logged in:
 </p>
 <img src="images/screenshot_my-past-flights_logged_out.png" width="700">
 <p>
-If you click on the "Sign in" button in the top right and enter your Google/Gmail credentials, you should see your past flights:
+If you click on the "Sign in" button in the top right and enter your Google/Gmail credentials, you should then see your past flights:
 </p>
 <img src="images/screenshot_my-past-flights_logged_in.png" width="700">
 
