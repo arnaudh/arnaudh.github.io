@@ -21,7 +21,7 @@
 <ol>
     <li>
 Drag the following link to your bookmarks bar:
-<a href="javascript:if(!window.location.href.startsWith('https://www.google.com/search?q=my+past+flights')){window.open('https://accounts.google.com/ServiceLogin/signinchooser?continue=https%253A%252F%252Fwww.google.com%252Fsearch%253Fq%253Dmy%252Bpast%252Bflights&hl=en&flowName=GlifWebSignIn&flowEntry=ServiceLogin');} else { document.body.appendChild(document.createElement('script')).src='https://arnaudh.github.io/co2-emissions/js/flights_co2.js';} void(0);">
+<a id="bookmarklet" href="javascript:if(!window.location.href.startsWith('https://www.google.com/search?q=my+past+flights')){window.open('https://accounts.google.com/ServiceLogin/signinchooser?continue=https%253A%252F%252Fwww.google.com%252Fsearch%253Fq%253Dmy%252Bpast%252Bflights&hl=en&flowName=GlifWebSignIn&flowEntry=ServiceLogin');} else { document.body.appendChild(document.createElement('script')).src='https://arnaudh.github.io/co2-emissions/js/flights_co2.js';} void(0);">
 CO₂ ✈️ Calculator
 </a>
     </li>
@@ -56,7 +56,7 @@ Feedback or question? Drop a line to <i>arnaaal+flights@gmail.com</i> (also chec
 <p>
 If you are a Gmail user, then when you search for "my past flights" on Google you will see a list of your recent flights.
 <br><br>
-The link that you have dragged to your bookmark bar is a Javascript bookmark (a <a href="https://en.wikipedia.org/wiki/Bookmarklet">bookmarklet</a>), which when clicked on will read the flights information on the page, and calculate an estimate of your CO₂ emissions for each flight.
+The link that you have dragged to your bookmark bar is a Javascript bookmark (a <a href="https://en.wikipedia.org/wiki/Bookmarklet">bookmarklet</a>) which, when clicked on, will read the flights information on the page, and calculate an estimate of your CO₂ emissions for each flight.
 The estimate is based on the exponential formula on km per flight from <a href="http://www.co2list.org/files/carbon.htm">co2list.org</a>
 </p>
 
@@ -93,4 +93,24 @@ If you are logged in and still don't see any flights, you either have that listi
 </p>
 
 </body>
+<script type="text/javascript">
+(function(){
+
+let body = document.body;
+let bodyRect = document.body.getBoundingClientRect();
+let bookmarklet = document.getElementById('bookmarklet');
+let bookmarkletRect = bookmarklet.getBoundingClientRect();
+let left = bookmarkletRect.right + 5;
+let top = 0;
+let width = Math.min(300, window.innerWidth-bookmarkletRect.right-10);
+let height = bookmarkletRect.bottom + body.scrollTop - 5;
+
+document.body.style.backgroundImage = 'url("images/arrow-bookmarklet.png")';
+document.body.style.backgroundRepeat = 'no-repeat';
+document.body.style.position = 'relative';
+document.body.style.backgroundPosition = `left ${left}px top ${top}px`;
+document.body.style.backgroundSize = `${width}px ${height}px`;
+
+})();
+</script>
 </html>
