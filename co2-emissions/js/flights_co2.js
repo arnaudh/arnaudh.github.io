@@ -3,6 +3,8 @@ if (typeof CO2_CALCULATION_RAN !== 'undefined') {
 } else {
   (function () {
 
+// source: https://openflights.org/data.html (airports.dat)
+// To generate below list from airports.dat: //TODO VERIFY cat airports.dat.txt | csv2tsv | awk -F$'\t' 'BEGIN {print "{"} NR > 1 {printf(",")} {print "\"" $5 "\"" ":[" $7 "," $8 "]"} END {print "}"}' | grep -v "\\\\N" > my_airports.json
 const airportsLatLon = {
   "GKA":[-6.081689834590001,145.391998291]
   ,"MAG":[-5.20707988739,145.789001465]
@@ -6137,11 +6139,11 @@ flightsData = [...flightsRows].flatMap(r => {
       toAirportCity: airports[2*i+1] //TODO
     }); 
   }
-  console.log('flightsArray', flightsArray);
+  // console.log('flightsArray', flightsArray);
   return flightsArray;
 });
 
-console.log('flightsData', flightsData);
+// console.log('flightsData', flightsData);
 
 // my_flights = $('.vk_bk.ThaHId').map(x => x.innerHTML);
 // my_flights = [...document.querySelectorAll('.vk_bk.ThaHId')].map(x => x.innerHTML);
@@ -6260,10 +6262,20 @@ function loadScript(url, callback)
   head.appendChild(script);
 }
 
+// flightData_with_CO2_sorted_by_CO2=[];
+// total_CO2_tons_3=0;
+
 let textColor = '#555';
 
-loadScript("https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js", function() {
+// loadScript("https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js", function() {
+      loadScript("https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.js", function() {
+
+//     loadScript("https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@0.5.5", function() {
+      loadScript("https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/0.5.5/chartjs-plugin-annotation.js", function() {
+
   loadScript("https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.5.0", function() {
+
+
     let canvas = document.createElement('canvas');
     let searchDiv = document.getElementById('search');
     canvas.width = searchDiv.getBoundingClientRect().width; // this is not the actual width 
@@ -6274,17 +6286,69 @@ loadScript("https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js
     // let worseFlight = flightData_with_CO2_sorted_by_CO2[0];
     // console.log('worseFlight', worseFlight);
     let infoDiv = document.createElement('div');
+    let conclusionText; 
+    if (total_CO2_tons_3 > 3) {
+      conclusionText = 'This means that, from your flying alone, you have exceeded the global per-person sustainable level. Moreover,'
+    } else {
+      conclusionText = 'Although your emissions from flying are below the global per-person sustainable level, '
+    }
+
+
+    // console.log('flightData_with_CO2_sorted_by_CO2', flightData_with_CO2_sorted_by_CO2);
+    let flightExample;
+    // if (flightData_with_CO2_sorted_by_CO2.length > 0) {
+    if (false) {
+      // TODO get city name + order in list
+      flightExample = `Avoiding one round-trip flight from ${flightData_with_CO2_sorted_by_CO2[0].fromAirportCity} to ${flightData_with_CO2_sorted_by_CO2[0].toAirportCity} (${(flightData_with_CO2_sorted_by_CO2[0].CO2_tons_3 * 2).toFixed(1)} tonnes)`
+    } else {
+      flightExample = 'Avoiding one round-trip transatlantic flight (1.6 tonnes)'
+    }
+
+
     infoDiv.innerHTML = `
     <p>
-    * Estimate based on your flight bookings in Gmail (listed below), using the exponential formula on km per flight from <a href="http://www.co2list.org/files/carbon.htm">co2list.org</a>
+    ¹ Your emissions from flying are estimated based on your flight bookings in Gmail (listed further down this page), using the exponential formula on kilometer per flight from <a href="http://www.co2list.org/files/carbon.htm">co2list.org</a>
     </p>
     <p>
-    † Based on the prediction of 37.1 gigatonnes CO2 emitted globally for 2018 (<a href="https://www.globalcarbonproject.org/carbonbudget/18/highlights.htm">Global Carbon Project</a>), with world population 7.5 billion
+    ² The average human emits 4.9 tonnes of CO₂ per year, across all activities: transport, heating & electricity, food, etc (source: <a href="https://data.worldbank.org/indicator/EN.ATM.CO2E.PC">World Bank</a>)
+    </p>
+    <p>
+    ³ A sustainable target for CO₂ emissions per person per year is 3 tonnes, according to <a href="https://ourworld.unu.edu/en/uncovering-the-carbon-footprint-of-everything">the United Nations University</a> and <a href="http://www.ecocivilization.info/three-tons-carbon-dioxide-per-person-per-year.html">EcoCivilization.info</a>
+    </p>
+
+    <p>
+    ${conclusionText}
+    what is missing from the picture is your emissions due to other activities such as heat & electricity, food, other forms of transport, etc. As a point of reference, the average person in the USA emits 17 tonnes of CO₂ per year, and flying accounts for only 2% of that (sources: <a href="https://data.worldbank.org/indicator/EN.ATM.CO2E.PC?locations=US">World Bank</a>, <a href="https://www.atag.org/facts-figures.html">Air Transport Action Group</a>).
+    </p>
+    
+    <p>
+If you live in a developped country, the most impactful individual actions you can take to reduce your carbon footprint are:
+<ul >
+  <li style="margin: 0 15px;padding: 0 15px;">Not having an additional child (58.6 tonnes per year)</li>
+  <li style="margin: 0 15px;padding: 0 15px;">Living car-free (2.4 tonnes per year)</li>
+  <li style="margin: 0 15px;padding: 0 15px;">${flightExample}</li>
+  <li style="margin: 0 15px;padding: 0 15px;">Buying green energy (1.5 tonnes per year)</li>
+  <li style="margin: 0 15px;padding: 0 15px;">Eating a plant-based diet (0.8 tonnes per year)</li>
+</ul>
+
+    </p>
+
+    <p>
+    If you want to learn more about what impact you have as an individual, <a href="https://en.wikipedia.org/wiki/Individual_action_on_climate_change">this Wikipedia page</a> is a good place to start.
     </p>
 
     <table style="border: 1px solid ${textColor}; margin: 20px auto">
-    <tr><th>Flight</th><th>Distance<br>(km)</th><th>CO₂ emissions<br>(tons per passenger)</th></tr>
-    ${flightData_with_CO2_sorted_by_CO2.map(f => `<tr><td>${f.fromAirportCity} to ${f.toAirportCity}</td><td style="text-align:right">${f.distance}</td><td style="text-align:right">${f.CO2_tons_3.toFixed(2)}</td></tr>`).join('')}
+    <caption>Your CO₂ emissions per flight</caption>
+    <tr>
+      <th style="border-bottom:1px solid black;">Flight</th>
+      <th style="border-bottom:1px solid black;">Distance<br>(km)</th>
+      <th style="border-bottom:1px solid black;">CO₂ emissions<br>(tonnes per passenger)</th>
+    </tr>
+    ${flightData_with_CO2_sorted_by_CO2.map(f => `<tr>
+      <td>${f.fromAirportCity} to ${f.toAirportCity}</td>
+      <td style="text-align:right;">${f.distance}</td>
+      <td style="text-align:right;">${f.CO2_tons_3.toFixed(2)}</td>
+    </tr>`).join('')}
     </table>
 
 
@@ -6300,8 +6364,8 @@ loadScript("https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js
       labels: [
         // ['Your emissions', 'due to flying', 'in the past 12 months'],
         // ['Your emissions', 'due to flying', 'in the past 12 months'],
-        ['Your emissions', 'in the past 12 months', '(flying only)*'],
-        ['Average emissions per person', 'worldwide 2018', '(all activities)†']
+        ['Your emissions', 'in the past 12 months', '(flying only)¹'],
+        ['Average emissions per person', 'worldwide 2018', '(all activities)²']
       ],
       datasets: [
           {
@@ -6332,8 +6396,31 @@ loadScript("https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js
         Chart.defaults.global.defaultFontColor = textColor;
         window.myBar = new Chart(ctx, {
           type: 'bar',
+
+            // plugins: [ChartAnnotation],
           data: barChartData,
           options: {
+
+            annotation: {
+              annotations: [
+                {
+                  type: "line",
+                  mode: "horizontal",
+                  scaleID: "y-axis-0",
+                  value: "3",
+                  borderColor: "green",
+                  label: {
+                    content: "sustainable³",
+                    enabled: true,
+                    position: "right",
+                    backgroundColor: 'rgba(1,1,1,0)',
+                    fontColor: "green",
+                    yAdjust: -10
+                  }
+                }
+              ]
+            },
+
             responsive: true,
             legend: {
               position: 'top',
@@ -6346,14 +6433,14 @@ loadScript("https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js
                   // console.log('HEEERE', tooltipItem, flightData_with_CO2_sorted_by_CO2, tooltipItem.datasetIndex);
                   // flightData = flightData_with_CO2_sorted_by_CO2[tooltipItem.datasetIndex-1];
                   // return `${flightData.fromAirportCode} -> ${flightData.toAirportCode}: ${flightData.CO2_tons_3.toFixed(2)} tons`;
-                  // return `${tooltipItem.yLabel} tons`;
+                  // return `${tooltipItem.yLabel} tonnes`;
                 // }, 
               //   title: () => null,
               // }
             },
             title: {
               display: true,
-              text: 'CO₂ emissions (tons)'
+              text: 'CO₂ emissions (tonnes)'
             },
 
             scales: {
@@ -6362,7 +6449,7 @@ loadScript("https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js
                 stacked: true,
                 scaleLabel: {
                   display: false,
-                  labelString: 'CO₂ (tons)'
+                  labelString: 'CO₂ (tonnes)'
 
                 },
                 ticks: {
@@ -6371,8 +6458,12 @@ loadScript("https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js
                 }
               }]
             }
+
+
           }
         });
+      });
+
       });
 });
 
