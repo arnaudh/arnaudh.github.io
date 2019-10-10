@@ -3,7 +3,7 @@
     <title>Flying CO₂ emissions calculator</title>
     <style type="text/css">
         body{margin:40px auto;max-width:750px;line-height:1.6;font-size:18px;color:#444;padding:0 10px}h1,h2,h3{line-height:1.2}
-        img{margin:20px 0px; border: 1px solid #444}
+        .screenshot-img{margin:20px 0px; border: 1px solid #444}
     </style>
 
     <meta property="og:title" content="Flying CO₂ emissions calculator">
@@ -40,7 +40,7 @@ While on that Google page, click on the bookmark again. This will show your CO�
 The following animation demonstrates these steps:
 <br>
 <br>
-<img src="images/screencast.gif" style="display:block;margin:auto;">
+<img class="screenshot-img" src="images/screencast.gif" style="display:block;margin:auto;">
 <br>
 Feedback or question? Drop a line to <i>arnaaal+flights@gmail.com</i> (also checkout the <a href="#FAQ">FAQ</a> below).
 
@@ -56,40 +56,42 @@ Feedback or question? Drop a line to <i>arnaaal+flights@gmail.com</i> (also chec
 <p>
 If you are a Gmail user, then when you search for "my past flights" on Google you will see a list of your recent flights.
 <br><br>
-The link that you have dragged to your bookmark bar is a Javascript bookmark (a <a href="https://en.wikipedia.org/wiki/Bookmarklet">bookmarklet</a>) which, when clicked on, will read the flights information on the page, and calculate an estimate of your CO₂ emissions for each flight.
+The link that you have dragged to your bookmarks bar is a Javascript bookmark (a <a href="https://en.wikipedia.org/wiki/Bookmarklet">bookmarklet</a>) which, when clicked on, will read the flights information on the page, and calculate an estimate of your CO₂ emissions for each flight.
 The estimate is based on the exponential formula on km per flight from <a href="http://www.co2list.org/files/carbon.htm">co2list.org</a>
 </p>
 
 <h3>Q: Is my data shared in any way?</h3>
 <p>
-    No, but good on you for asking. The bookmarklet code runs in your browser, and no data is sent to any thrid party.
-    <br><br>
+    No, the bookmarklet code runs in your browser, and no data is sent to any thrid party.
+</p>
+<p>
     To convince yourself of that, you can switch off your internet connection just before you run the bookmarklet on the Google search page (and then closing the page before switching on the connection again).
-    <br><br>
-    If you know Javascript, you can also inspect the code yourself (it lives <a href="https://github.com/arnaudh/arnaudh.github.io/tree/master/co2-emissions">here</a>).
+    Also, if you know Javascript, you can inspect the code yourself (it lives <a href="https://github.com/arnaudh/arnaudh.github.io/tree/master/co2-emissions">here</a>).
 </p>
 
-<h3>Q: You said 3 clicks, but it's 1 drag and 2 clicks.</h3>
+<h3>Q: I don't see my bookmarks bar, what's wrong?</h3>
 <p>
-    Sorry
+    Your bookmarks bar may be hidden.
+    If you use Chrome, you can display the bookmarks bar by clicking on the three dots in the top right <img src="images/chrome_more_button.svg" width="18" height="18" style="vertical-align: middle"> > Bookmarks > Show Bookmarks Bar.
 </p>
-
-
-
-<h3>Q: I can't see my past flights on Google, what's wrong?</h3>
 <p>
-For you to see your past flights on Google, you need to be logged in to your Google/Gmail account, and then search for "my past flights" on Google.
-<br><br>
-Here is a screenshot of the search results when <em>not</em> logged in:
+    For other browsers, please search for instructions specific to your browser.
+<p>
+
+<h3>Q: I don't see my past flights on Google, what's wrong?</h3>
+<p>
+    For you to see your past flights on Google, you need to be logged in to your Google/Gmail account, and then search for "my past flights" on Google.
 </p>
-<img src="images/screenshot_my-past-flights_logged_out.png" width="700">
 <p>
-If you click on the "Sign in" button in the top right and enter your Google/Gmail credentials, you should then see your past flights:
+    Here is a screenshot of the search results when <em>not</em> logged in:
 </p>
-<img src="images/screenshot_my-past-flights_logged_in.png" width="700">
-
+<img class="screenshot-img" src="images/screenshot_my-past-flights_logged_out.png" width="700">
 <p>
-If you are logged in and still don't see any flights, you either have that listing feature disabled (see <a href="https://support.google.com/websearch/answer/1710607?ref_topic=3036132">here</a>), or you simply don't have any flights bookings in your Gmail inbox.
+    If you click on the "Sign in" button in the top right and enter your Google/Gmail credentials, you should then see your past flights:
+</p>
+<img class="screenshot-img" src="images/screenshot_my-past-flights_logged_in.png" width="700">
+<p>
+    If you are logged in and still don't see any flights, you either have that listing feature disabled (see <a href="https://support.google.com/websearch/answer/1710607?ref_topic=3036132">here</a>), or you simply don't have any flights bookings in your Gmail inbox.
 </p>
 
 </body>

@@ -6288,7 +6288,7 @@ let textColor = '#555';
     let infoDiv = document.createElement('div');
     let conclusionText; 
     if (total_CO2_tons_3 > 3) {
-      conclusionText = 'This means that, from your flying alone, you have exceeded the global per-person sustainable level. Moreover,'
+      conclusionText = 'This means that, just from flying, you have exceeded the global per-person sustainable level. Moreover,'
     } else {
       conclusionText = 'Although your emissions from flying are below the global per-person sustainable level, '
     }
@@ -6310,10 +6310,10 @@ let textColor = '#555';
     ¹ Your emissions from flying are estimated based on your flight bookings in Gmail (listed further down this page), using the exponential formula on kilometer per flight from <a href="http://www.co2list.org/files/carbon.htm">co2list.org</a>
     </p>
     <p>
-    ² The average human emits 4.9 tonnes of CO₂ per year, across all activities: transport, heating & electricity, food, etc (source: <a href="https://data.worldbank.org/indicator/EN.ATM.CO2E.PC">World Bank</a>)
+    ² The average human emits 4.9 tonnes of CO₂ per year across all activities: transport, heating & electricity, food, etc (source: <a href="https://data.worldbank.org/indicator/EN.ATM.CO2E.PC">World Bank</a>)
     </p>
     <p>
-    ³ A sustainable target for CO₂ emissions per person per year is 3 tonnes, according to <a href="https://ourworld.unu.edu/en/uncovering-the-carbon-footprint-of-everything">the United Nations University</a> and <a href="http://www.ecocivilization.info/three-tons-carbon-dioxide-per-person-per-year.html">EcoCivilization.info</a>
+    ³ A sustainable target for CO₂ emissions per person per year is 3 tonnes, according to the <a href="https://ourworld.unu.edu/en/uncovering-the-carbon-footprint-of-everything">United Nations University</a> and <a href="http://www.ecocivilization.info/three-tons-carbon-dioxide-per-person-per-year.html">EcoCivilization.info</a>
     </p>
 
     <p>
@@ -6337,6 +6337,8 @@ If you live in a developped country, the most impactful individual actions you c
     If you want to learn more about what impact you have as an individual, <a href="https://en.wikipedia.org/wiki/Individual_action_on_climate_change">this Wikipedia page</a> is a good place to start.
     </p>
 
+
+
     <table style="border: 1px solid ${textColor}; margin: 20px auto">
     <caption>Your CO₂ emissions per flight</caption>
     <tr>
@@ -6351,6 +6353,20 @@ If you live in a developped country, the most impactful individual actions you c
     </tr>`).join('')}
     </table>
 
+    <p>
+    Feel free to share this tool by sending around the following url:
+    <br> <i>https://arnaudh.github.io/co2-emissions/flying.html</i>
+    </p>
+    <p>
+    Feedback or questions? Drop a line to <i>arnaaal+flights@gmail.com</i>
+    </p>
+    
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
 
     `;
     infoDiv.style.color = textColor;
