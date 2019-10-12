@@ -6410,7 +6410,10 @@ let textColor = '#555';
     <a href="https://arnaudh.github.io/co2-emissions/flying.html">https://arnaudh.github.io/co2-emissions/flying.html</a>
     </p>
     <p>
-    Feedback or questions? Please send an email to <i>arnaaal+flights@gmail.com</i>
+    Feedback or questions? Please do get in touch! You can send me an email at <i>arnaaal+flights@gmail.com</i>
+    </p>
+    <p>
+    Thank you for trying out the tool!
     </p>
 
     
