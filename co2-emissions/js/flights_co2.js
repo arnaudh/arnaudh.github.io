@@ -6323,7 +6323,7 @@ let textColor = '#555';
     // console.log('flightData_with_CO2_sorted_by_CO2', flightData_with_CO2_sorted_by_CO2.reverse[0]);
     // let worseFlight = flightData_with_CO2_sorted_by_CO2[0];
     // console.log('worseFlight', worseFlight);
-    let hrLine = document.createElement('hr');
+    let beforeCanvas = document.createElement('br');
     let infoDiv = document.createElement('div');
     let conclusionText; 
     if (total_CO2_tons_3 > 3) {
@@ -6360,8 +6360,9 @@ let textColor = '#555';
     console.log('actionsHTML', actionsHTML);
 
     infoDiv.innerHTML = `
+    <br>
     <p>
-    ¹ Your emissions from flying are estimated based on your flight bookings in Gmail (listed further down this page), using the formula on distance per flight from the <a href="https://www.epa.gov/sites/production/files/2018-03/documents/emission-factors_mar_2018_0.pdf">US Environmental Protection Agency</a>
+    ¹ Your emissions from flying are estimated based on your flight bookings in Gmail (listed below), using the formula on distance per flight from the <a href="https://www.epa.gov/sites/production/files/2018-03/documents/emission-factors_mar_2018_0.pdf">US Environmental Protection Agency</a>
     </p>
     <p>
     ² The average human emits 4.9 tonnes of CO₂ per year across all activities (<i>source: <a href="https://data.worldbank.org/indicator/EN.ATM.CO2E.PC">World Bank</a></i>)
@@ -6369,6 +6370,21 @@ let textColor = '#555';
     <p>
     ³ A sustainable target for CO₂ emissions per person per year is 3 tonnes, according to the <a href="https://ourworld.unu.edu/en/uncovering-the-carbon-footprint-of-everything">United Nations University</a> and <a href="http://www.ecocivilization.info/three-tons-carbon-dioxide-per-person-per-year.html">EcoCivilization.info</a>
     </p>
+
+    <table style="border: 1px solid ${textColor}; margin: 20px auto">
+    <caption style="margin: 10px 0">Your CO₂ emissions per flight</caption>
+    <tr>
+      <th style="border-bottom:1px solid black;">Flight</th>
+      <th style="border-bottom:1px solid black;">Distance<br>(km)</th>
+      <th style="border-bottom:1px solid black;">CO₂ emissions<br>(tonnes per passenger)</th>
+    </tr>
+    ${flightData_with_CO2_sorted_by_CO2.map(f => `<tr>
+      <td>${f.fromAirportCity} to ${f.toAirportCity}</td>
+      <td style="text-align:right;">${f.distance_km}</td>
+      <td style="text-align:right;">${f.CO2_tons_3.toFixed(2)}</td>
+    </tr>`).join('')}
+    </table>
+    <br>
 
     <p>
     ${conclusionText}
@@ -6386,7 +6402,9 @@ let textColor = '#555';
     For a higher level perspective on CO₂ emissions across the globe, see <a href="https://ourworldindata.org/co2-and-other-greenhouse-gas-emissions">this great report</a> by Our World in Data.
     </p>
 
+    <br>
     <hr>
+    <br>
     <p>
     If you think this was insightful, please share around the link to the instructions:
     <a href="https://arnaudh.github.io/co2-emissions/flying.html">https://arnaudh.github.io/co2-emissions/flying.html</a>
@@ -6395,19 +6413,6 @@ let textColor = '#555';
     Feedback or questions? Please send an email to <i>arnaaal+flights@gmail.com</i>
     </p>
 
-    <table style="border: 1px solid ${textColor}; margin: 20px auto">
-    <caption>Your CO₂ emissions per flight</caption>
-    <tr>
-      <th style="border-bottom:1px solid black;">Flight</th>
-      <th style="border-bottom:1px solid black;">Distance<br>(km)</th>
-      <th style="border-bottom:1px solid black;">CO₂ emissions<br>(tonnes per passenger)</th>
-    </tr>
-    ${flightData_with_CO2_sorted_by_CO2.map(f => `<tr>
-      <td>${f.fromAirportCode} to ${f.toAirportCode}</td>
-      <td style="text-align:right;">${f.distance_km}</td>
-      <td style="text-align:right;">${f.CO2_tons_3.toFixed(2)}</td>
-    </tr>`).join('')}
-    </table>
     
     <br>
     <br>
@@ -6428,7 +6433,7 @@ let textColor = '#555';
 
     searchDiv.prepend(infoDiv);
     searchDiv.prepend(canvas);
-    // searchDiv.prepend(hrLine);
+    searchDiv.prepend(beforeCanvas);
 
     let ctx = canvas.getContext('2d');
 
