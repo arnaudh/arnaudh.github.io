@@ -6327,7 +6327,7 @@ let textColor = '#555';
     let infoDiv = document.createElement('div');
     let conclusionText; 
     if (total_CO2_tons_3 > 3) {
-      conclusionText = 'This means that, just from flying, you have exceeded the global per-person sustainable level. Moreover,'
+      conclusionText = 'This means that your total flights emissions are higher than the global per-person sustainable level. Moreover,'
     } else {
       conclusionText = 'Although your emissions from flying are below the global per-person sustainable level, '
     }
@@ -6355,7 +6355,7 @@ let textColor = '#555';
       ['Eating a plant-based diet', 0.8, 'tonnes per year'],
       flyingActionItem
     ];
-    let actionsHTML = actionsList.sort((a,b) => b[1] - a[1]).map(([a,b,c]) => `<li style="margin: 0 15px;padding: 0 15px;">${a} (${b.toFixed(1)} ${c})</li>`).join('\n');
+    let actionsHTML = actionsList.sort((a,b) => b[1] - a[1]).map(([a,b,c]) => `<li style="margin: 0 15px;padding: 0 15px;">${a}: ${b.toFixed(1)} ${c}</li>`).join('\n');
 
     console.log('actionsHTML', actionsHTML);
 
@@ -6388,7 +6388,12 @@ let textColor = '#555';
 
     <p>
     ${conclusionText}
-    what is missing from the picture is your emissions due to other activities such as heat & electricity, food, other forms of transport, etc. As a point of reference, the average person in the USA emits 17 tonnes of CO₂ per year, and flying accounts for only 2% of that (<i>sources: <a href="https://data.worldbank.org/indicator/EN.ATM.CO2E.PC?locations=US">World Bank</a>, <a href="https://www.atag.org/facts-figures.html">Air Transport Action Group</a></i>).
+    what is missing from the picture is your emissions due to other activities such as heat & electricity, food, other forms of transport, etc.
+    <br>
+    To get an estimate of those, you can use a carbon footprint calculator, such as <a href="https://www3.epa.gov/carbon-footprint-calculator/">this one</a>.
+    <br>
+    As a point of reference, the average emissions for a person living in the USA is 17 tonnes per year (Australia: 15.5, Canada: 15.2, UK: 6.5), and flying accounts for only 2% of that.
+    <div style="text-align:right;">(<i>sources: <a href="https://data.worldbank.org/indicator/EN.ATM.CO2E.PC?locations=US">World Bank</a>, <a href="https://www.atag.org/facts-figures.html">Air Transport Action Group</a></i>)</div>
     </p>
     
     <p>
@@ -6396,10 +6401,12 @@ let textColor = '#555';
     <ul >
       ${actionsHTML}
     </ul>
-    <div style="text-align:right;"><i>source: <a href="https://iopscience.iop.org/article/10.1088/1748-9326/aa7541/pdf">Environmental Research Letters</a></i></div>
+    <br>
+    <div style="text-align:right;">(<i>source: <a href="https://iopscience.iop.org/article/10.1088/1748-9326/aa7541/pdf">Environmental Research Letters</a></i>)</div>
     </p>
     <p>
-    For a higher level perspective on CO₂ emissions across the globe, see <a href="https://ourworldindata.org/co2-and-other-greenhouse-gas-emissions">this great report</a> by Our World in Data.
+    However, Climate Change is a complex issue, and will require more than individual actions to be solved.
+    For a global perspective on CO₂ emissions and their impact, see <a href="https://ourworldindata.org/co2-and-other-greenhouse-gas-emissions">this great report</a> by Our World in Data. 
     </p>
 
     <br>
@@ -6430,6 +6437,7 @@ let textColor = '#555';
     // https://iopscience.iop.org/article/10.1088/1748-9326/aa7541/pdf - The climate mitigation gap: education and government recommendations miss the most effective individual actions
     // https://www.eci.ox.ac.uk/research/energy/downloads/jardine09-carboninflights.pdf - Calculating The Carbon Dioxide Emissions Of Flights
     // https://en.wikipedia.org/wiki/Individual_action_on_climate_change
+    // https://www.bbc.com/future/columns/climate-emotions - BBC
 
 
     infoDiv.style.color = textColor;
