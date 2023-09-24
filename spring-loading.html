@@ -1,0 +1,107 @@
+<!-- https://chat.openai.com/c/7e865e82-3519-4af4-8c04-86b23f8062dd -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Countdown to Spring</title>
+    <style>
+        .day {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #000;
+            text-align: center;
+            line-height: 30px;
+            margin: 1px;
+        }
+        .past-weekday {
+            background-color: #008000; /* green */
+        }
+        .past-weekend {
+            background-color: #006400; /* dark green */
+        }
+        .future-weekday {
+            background-color: #ffffff; /* white */
+        }
+        .future-weekend {
+            background-color: #d3d3d3; /* light gray */
+        }
+        #counter {
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        #calendar {
+            display: flex;
+        }
+        .week {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+    <h1>Spring loading...</h1>
+    <div id="counter"></div>
+    <div id="calendar"></div>
+
+    <script>
+        function generateCountdown() {
+            const startDate = new Date(2023, 8, 21);
+            while (startDate.getDay() !== 1) { // Move to the previous Monday
+                startDate.setDate(startDate.getDate() - 1);
+            }
+            const endDate = new Date(2024, 2, 22); // Extend by one day to include 21st March
+            const today = new Date();
+
+            const oneDay = 24 * 60 * 60 * 1000; // milliseconds in a day
+            const totalDays = Math.round(Math.abs((endDate - startDate) / oneDay));
+            let daysPassed = Math.round(Math.abs((today - startDate) / oneDay));
+
+            let calendarHTML = '';
+            let weeksPassed = 0;
+
+            for (let i = 0; i < totalDays; i++) {
+                const currentDate = new Date(startDate);
+                currentDate.setDate(currentDate.getDate() + i);
+
+                if (i % 7 === 0) {
+                    if (i !== 0) {
+                        calendarHTML += '</div>'; // End the week column
+                    }
+                    calendarHTML += '<div class="week">'; // Start a new week column
+                }
+
+                // Check the color class based on day type and whether it has passed
+                let dayClass = 'day';
+                const isWeekend = (currentDate.getDay() === 6 || currentDate.getDay() === 0);
+
+                if (i < daysPassed) {
+                    dayClass += isWeekend ? ' past-weekend' : ' past-weekday';
+                } else {
+                    dayClass += isWeekend ? ' future-weekend' : ' future-weekday';
+                }
+
+                // Display month headers
+                let dayContent = '';
+                if (currentDate.getDate() === 1) {
+                    dayContent = '<strong>' + currentDate.toLocaleString('default', { month: 'short' }) + '</strong><br>';
+                } else {
+                    // For 21st of March, use the sun emoji
+                    dayContent = currentDate.getDate() === 21 && currentDate.getMonth() === 2 ? '🌞' : currentDate.getDate();
+                }
+
+                calendarHTML += `<div class="${dayClass}">${dayContent}</div>`;
+            }
+            calendarHTML += '</div>'; // Close the last week div
+
+            // Calculate weeks passed
+            weeksPassed = Math.floor(daysPassed / 7);
+
+            document.getElementById('calendar').innerHTML = calendarHTML;
+            document.getElementById('counter').innerText = `${weeksPassed} / ${Math.ceil(totalDays/7)} weeks 💪`;
+        }
+
+        window.onload = generateCountdown;
+    </script>
+</body>
+</html>
