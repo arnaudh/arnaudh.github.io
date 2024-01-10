@@ -1,0 +1,6 @@
+drag the following link to your bookmarks bar:
+<a id="bookmarklet" href="javascript:(function() {function sendMessage() {let count = 0; const maxAttempts = parseInt(prompt('How many times to tell ChatGPT to continue?', '10'), 10); const click = () => {const textarea = document.querySelector('textarea'); const sendButton = document.querySelector('[data-testid=\'send-button\']'); console.log('clicking button'); sendButton.click(); count++; console.log('Message sent:', count); setTimeout(send, 1000); }; const send = () => {if (count >= maxAttempts) {console.log('Attempt limit reached. Stopping.'); return; } const textarea = document.querySelector('textarea'); const sendButton = document.querySelector('[data-testid=\'send-button\']'); if (textarea && sendButton && sendButton.getAttribute('aria-label') !== 'Stop generating') {console.log('button ready - filling textarea'); textarea.value = 'please continue'; textarea.dispatchEvent(new Event('input', { bubbles: true })); console.log('setTimeout(click, 500)'); setTimeout(click, 500) } else {console.log('Waiting...'); setTimeout(send, 1000); } }; send(); } sendMessage(); })();">
+ChatGPT continue
+</a>
+
+then click it while talking with ChatGPT, this will send "please continue" after each ChatGPT response, as many times as you have selected.
