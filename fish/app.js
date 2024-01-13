@@ -1,5 +1,6 @@
 let smileDetected = false;
 let score = 0;
+let detections = null;
 
 
 async function loadModels() {
@@ -35,9 +36,17 @@ async function detectFaces() {
         // TODO try with bigger model, should give more accurate (though slower) face bounding box
         // detection, and so better smile detection?
         options = new faceapi.TinyFaceDetectorOptions();
-        const detections = await faceapi.detectAllFaces(video, options).withFaceExpressions();
+        detections = await faceapi.detectAllFaces(video, options).withFaceExpressions();
 
-        smileDetected = detections.some(detection => detection.expressions.happy > 0.5);
+
+        // detections.forEach(detection => {
+            // console.log(detection.expressions);
+            // if (detection.expressions.happy > 0.5) {
+            //     console.log("Smile Detected!");
+            // }
+        // });
+
+        smileDetected = detections.some(detection => detection.expressions.happy > 0.1);
     } else {
         console.log('MODELS NOT LOADED');
     }
@@ -52,6 +61,7 @@ loadModels().then(() => {
 
 
 function changeEmoji() {
+    console.log('last detections', detections[0].expressions);
     const emojiElement = document.getElementById('emoji');
     if (smileDetected) {
         score++;
