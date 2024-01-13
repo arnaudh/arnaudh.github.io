@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fish</title>
+    <meta charset="UTF-8">
+    <style>
+        #emojiContainer {
+            position: relative;
+            height: 100px; /* Adjust as needed */
+        }
+        #emoji {
+            position: absolute;
+            font-size: 48px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fish</h1>
+
+    CLICK THE FISH:
+    <div id="emojiContainer">
+        <div id="emoji">🐟</div>
+    </div>
+    <div>Score: <span id="score">0</span></div>
+
+    <video id="webcam" width="640" height="480" autoplay muted></video>
+    <!-- <script src="lib/face-api.js"></script> -->
+    <script src="lib/face-api.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
