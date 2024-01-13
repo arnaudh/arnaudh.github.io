@@ -4,8 +4,8 @@ let score = 0;
 
 async function loadModels() {
     // Load the models from their respective URIs
-    await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
-    await faceapi.nets.faceExpressionNet.loadFromUri('/models');
+    await faceapi.nets.tinyFaceDetector.loadFromUri('models');
+    await faceapi.nets.faceExpressionNet.loadFromUri('models');
     // Other models can be loaded similarly if needed
 }
 
