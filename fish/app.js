@@ -1,8 +1,13 @@
+// TODO show/link to license of face-api.js
+
+const urlParams = new URLSearchParams(window.location.search);
+const showVideo = urlParams.get('showvideo');
+
 let smileDetected = false;
 let score = 0;
 let detections = null;
 
-
+console.log('HERE');
 async function loadModels() {
     // Load the models from their respective URIs
     await faceapi.nets.tinyFaceDetector.loadFromUri('models');
@@ -10,11 +15,23 @@ async function loadModels() {
     // Other models can be loaded similarly if needed
 }
 
+this.video = document.createElement('video');
+this.video.setAttribute('id', 'video');
+this.video.setAttribute('autoplay', 'muted');
+document.body.appendChild(this.video);
+
+if (showVideo === 'true') {
+    document.getElementById('video').style.display = 'block';
+} else {
+    document.getElementById('video').style.display = 'none';
+}
+
 function setupWebcam() {
-    const video = document.getElementById('webcam');
+    const video = document.getElementById('video');
 
     navigator.mediaDevices.getUserMedia({ video: {} })
         .then(stream => {
+            console.log('got stream');
             video.srcObject = stream;
             video.onloadeddata = () => {
                 // Video is ready. Now you can start face detection
@@ -27,8 +44,9 @@ function setupWebcam() {
 }
 
 
+
 async function detectFaces() {
-    const video = document.getElementById('webcam');
+    const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
 
     // Check if the models are loaded
@@ -37,6 +55,9 @@ async function detectFaces() {
         // detection, and so better smile detection?
         options = new faceapi.TinyFaceDetectorOptions();
         detections = await faceapi.detectAllFaces(video, options).withFaceExpressions();
+
+        // console.log('detections', detections);
+
 
 
         // detections.forEach(detection => {
