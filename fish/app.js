@@ -1,7 +1,8 @@
 // TODO show/link to license of face-api.js
 
 const urlParams = new URLSearchParams(window.location.search);
-const showVideo = urlParams.get('showvideo');
+const showVideo = urlParams.get('showvideo') === 'true';
+const timer_duration = urlParams.get('timer') || 300;
 
 let smileDetected = false;
 let score = 0;
@@ -20,7 +21,7 @@ this.video.setAttribute('id', 'video');
 this.video.setAttribute('autoplay', 'muted');
 document.body.appendChild(this.video);
 
-if (showVideo === 'true') {
+if (showVideo) {
     document.getElementById('video').style.display = 'block';
 } else {
     document.getElementById('video').style.display = 'none';
@@ -56,7 +57,7 @@ async function detectFaces() {
         options = new faceapi.TinyFaceDetectorOptions();
         detections = await faceapi.detectAllFaces(video, options).withFaceExpressions();
 
-        // console.log('detections', detections);
+        console.log('detections', detections);
 
 
 
@@ -80,8 +81,26 @@ loadModels().then(() => {
     setupWebcam();
 });
 
+let timer_completed = false;
+const start = Date.now();
+let timer = timer_duration;
+const timerElement = document.getElementById('timer');
+function updateTimer() {
+    let delta = Date.now() - start; // milliseconds elapsed since start
+    let remainingSeconds = Math.max(timer - Math.floor(delta / 1000), 0);
+    let minutes = Math.floor(remainingSeconds / 60);
+    let seconds = remainingSeconds % 60;
+    timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    if (remainingSeconds === 0) {
+        timer_completed = true;
+        timerElement.textContent = 'Game Complete!';
+        return;
+    }
+}
+setInterval(updateTimer, 500);
+updateTimer();
 
-function changeEmoji() {
+function clickFish() {
     console.log('last detections', detections[0].expressions);
     const emojiElement = document.getElementById('emoji');
     if (smileDetected) {
@@ -97,7 +116,7 @@ function changeEmoji() {
         emojiElement.textContent = '🐟';
     }, 500);
 }
-document.getElementById('emoji').addEventListener('click', changeEmoji);
+document.getElementById('emoji').addEventListener('click', clickFish);
 
 function animateEmoji() {
     const emoji = document.getElementById('emoji');
