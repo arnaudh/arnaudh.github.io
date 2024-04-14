@@ -105,6 +105,7 @@ let expected = start_time;
 let correct_click = false;
 let correct_face = false;
 
+const trials_data = [];
 
 function updateTimer() {
     let drift = Date.now() - expected;
@@ -117,24 +118,32 @@ function updateTimer() {
     let seconds = remaining_seconds % 60;
     timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     // Check if the trial is complete
-    if (remaining_seconds % trial_duration == 0) {
-        // Check if both click and facial expression were correct
-        if (correct_click && correct_face) {
-            score++;
-            document.getElementById('score').textContent = score;
-        // if (correct_click) {
-            // Display gold coin
-            coinElement.style.visibility = 'visible';
-            setTimeout(() => {
-                coinElement.style.visibility = 'hidden';
-            }, 100);
-        }
+    if (elapsed_seconds > 0 && elapsed_seconds % trial_duration == 0) {
+        // Store correct_click and correct_face in a 2D array
+        trials_data.push([correct_click ? 1 : 0, correct_face ? 1 : 0]);
+
         // Reset correct count for the next trial
         correct_click = false;
         correct_face = false;
     }
     if (remaining_seconds === 0) {
         timerElement.textContent = 'Game Complete!';
+
+        // Convert trials_data to CSV format
+        let csv = trials_data.map(row => row.join(',')).join('\n');
+        console.log('csv', csv);
+
+        // Download the CSV file
+        function downloadCSV(data, filename) {
+            const csvBlob = new Blob([data], { type: 'text/csv' });
+            const csvURL = URL.createObjectURL(csvBlob);
+            const link = document.createElement('a');
+            link.href = csvURL;
+            link.download = filename;
+            link.click();
+        }
+        // Example usage
+        downloadCSV(csv, 'results.csv');
     } else {
         expected += interval;
         // Self-adjusting timer
