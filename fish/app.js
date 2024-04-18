@@ -17,7 +17,7 @@ const number_of_trials = urlParams.get('number_of_trials') || 60;
 const trial_duration = urlParams.get('trial_duration') || 5 * 1000; // default 5 seconds
 const starfish_onset = urlParams.get('starfish_onset') || 1 * 1000;
 const starfish_offset = urlParams.get('starfish_offset') || 4 * 1000;
-const starfish_disappear_duration = urlParams.get('starfish_disappearance_duration') || 500;
+const starfish_disappear_duration = urlParams.get('starfish_disappear_duration') || 500;
 const gold_coin_duration = urlParams.get('gold_coin_duration') || 200;
 // Interval between end of face detection and beggining of next face detection
 const detect_faces_interval = urlParams.get('detect_faces_interval') || 100;
