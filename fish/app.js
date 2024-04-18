@@ -258,7 +258,7 @@ function logEvent(gameEvent, metadata = null) {
 
 function downloadLog() {
     const csvContent = "data:text/csv;charset=utf-8," 
-        + "Event,Timestamp\n" 
+        + "Timestamp,Event,Metadata\n"
         + gameLog.map(eventToCsv).join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
