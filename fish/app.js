@@ -5,6 +5,10 @@ const show_video = urlParams.get('show_video') === 'true';
 const timer_duration = urlParams.get('timer_duration') || 300;
 const trial_duration = urlParams.get('trial_duration') || 5;
 
+
+const starfish_onset = 1;
+const starfish_offset = 4;
+
 if (timer_duration % trial_duration != 0) {
     throw new Error('Timer duration should be a multiple of trial duration');
 }
@@ -97,7 +101,6 @@ async function detectFaces() {
 loadModels().then(() => {
     setupWebcam();
 });
-
 const start_time = Date.now();
 const interval = 1000;
 let expected = start_time;
@@ -106,6 +109,18 @@ let correct_click = false;
 let correct_face = false;
 
 const trials_data = [];
+
+let events = [];
+function log_event(name, metadata) {
+    const timestamp = new Date().toISOString();
+    const event = {
+        timestamp,
+        name,
+        metadata
+    };
+    events.push(event);
+}
+
 
 function updateTimer() {
     let drift = Date.now() - expected;
@@ -117,7 +132,20 @@ function updateTimer() {
     let minutes = Math.floor(remaining_seconds / 60);
     let seconds = remaining_seconds % 60;
     timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    // Check if the trial is complete
+    
+    if (elapsed_seconds % trial_duration == 0 && remaining_seconds != 0) {
+        // Start of trial
+        
+        // Show the smiling starfish at a random time between starfish_onset and starfish_offset
+        const starfish_random_time = starfish_onset + Math.random() * (starfish_offset - starfish_onset);
+        log('starfish_random_time', starfish_random_time);
+        setTimeout(
+            showSmilingStarfish,
+            starfish_random_time * 1000
+        );
+    }
+
+
     if (elapsed_seconds > 0 && elapsed_seconds % trial_duration == 0) {
         // Store correct_click and correct_face in a 2D array
         trials_data.push([correct_click ? 1 : 0, correct_face ? 1 : 0]);
@@ -146,10 +174,29 @@ function updateTimer() {
         downloadCSV(csv, 'results.csv');
     } else {
         expected += interval;
-        // Self-adjusting timer
+        // Self-adjusting timer // TODO Actually don't need this, think about it if a trial is super long for some reason (eg browser GC), we don't want to speedup subsequent trials to "catch up", we want them to still be steady 5s.
         setTimeout(updateTimer, Math.max(0, interval - drift));
     }
 }
+
+function showSmilingStarfish() {
+    log_event("starfish_onset");
+    const container = document.getElementById('emojiContainer');
+    const smilingStarfish = document.createElement('div');
+    smilingStarfish.setAttribute('class', 'smiling-starfish');
+    smilingStarfish.style.left = getRandomPosition(container.clientWidth) + 'px';
+    smilingStarfish.style.top = getRandomPosition(container.clientHeight) + 'px';
+    container.appendChild(smilingStarfish);
+
+    setTimeout(() => {
+        container.removeChild(smilingStarfish);
+    }, 1000);
+}
+
+function getRandomPosition(max) {
+    return Math.floor(Math.random() * max);
+}
+
 updateTimer();
 
 function clickFish() {
