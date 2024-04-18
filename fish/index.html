@@ -29,6 +29,9 @@
         #download-log {
             display: none;
         }
+        #countdown-display {
+            display: none;  /* not showing since it seems to drift substantially from trials loop */
+        }
     </style>
 </head>
 <body>
@@ -36,6 +39,7 @@
 
     <button id="start-game" disabled>Game is loading...</button>
     <div id="countdown-display"></div>
+    <div id="trial-display"></div>
     <div id="game-container">
         <div id="gold-coin">🪙<!--<img src="gold_coin.png" alt="🪙">--></div>
         <div id="starfish">⭐<!--<img src="starfish.png" alt="⭐">--></div>

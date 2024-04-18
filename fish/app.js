@@ -13,7 +13,7 @@ const subject_id = urlParams.get('subject_id') || error('Missing subject_id in U
 const session_number = urlParams.get('session_number') || error('Missing session_number in URL parameters');
 
 // *** Game settings (all times in milliseconds)
-const game_duration = urlParams.get('game_duration') || 5 * 60 * 1000; // default 5 minutes
+const number_of_trials = urlParams.get('number_of_trials') || 60;
 const trial_duration = urlParams.get('trial_duration') || 5 * 1000; // default 5 seconds
 const starfish_onset = urlParams.get('starfish_onset') || 1 * 1000;
 const starfish_offset = urlParams.get('starfish_offset') || 4 * 1000;
@@ -22,7 +22,8 @@ const gold_coin_duration = urlParams.get('gold_coin_duration') || 200;
 // Interval between end of face detection and beggining of next face detection
 const detect_faces_interval = urlParams.get('detect_faces_interval') || 100;
 const happy_threshold = urlParams.get('happy_threshold') || 0.1;
-const fish_speed = urlParams.get('fish_speed') || 1.2;
+const happy_threshold_timespan = urlParams.get('happy_threshold_timespan') || 1000;
+const fish_speed = urlParams.get('fish_speed') || 0.8;
 
 // *** Debug settings
 const show_video = urlParams.get('show_video') === 'true';
@@ -31,10 +32,7 @@ const log_detected = urlParams.get('log_detected') === 'true';
 // **************** END OF ADJUSTABLE URL SETTINGS **************** //
 
 
-// Validation
-if (game_duration % trial_duration != 0) {
-    error('game_duration should be a multiple of trial_duration');
-}
+const game_duration = number_of_trials * trial_duration;
 
 // *** Game variables
 let gameLog = [];
@@ -53,7 +51,7 @@ let fish_directionY = 1; // Vertical direction
 logEvent('Page loaded',  {
     subject_id,
     session_number,
-    game_duration,
+    number_of_trials,
     trial_duration,
     starfish_onset,
     starfish_offset,
@@ -83,6 +81,7 @@ const pingSound = document.getElementById('ping-sound');
 const gameContainer = document.getElementById('game-container');
 const startGameButton = document.getElementById('start-game');
 const countdownDisplay = document.getElementById('countdown-display');
+const trialDisplay = document.getElementById('trial-display');
 
 
 const downloadButton = document.getElementById('download-log');
@@ -187,6 +186,7 @@ function startTrial() {
     }
     trialNumber++;
     logEvent('Trial started', trialNumber);
+    trialDisplay.innerText = `Trial ${trialNumber} / ${number_of_trials}`;
     correctClick = false;
     let randomTime = starfish_onset + Math.random() * (starfish_offset - starfish_onset);
     // console.log('randomTime', randomTime);
@@ -311,14 +311,15 @@ function moveFish() {
         fish.style.left = fish_posX + 'px';
         fish.style.top = fish_posY + 'px';
 
-        requestAnimationFrame(move);
+        // `requestAnimationFrame` can depend on the browser and the screen refresh rate, so using setTimeout instead
+        setTimeout(move, 1000 / 60);
     }
 
     move();
 }
 function happy_face() {
     const currentTime = new Date();
-    const pastTime = new Date(currentTime.getTime() - 1000); // 1 second ago
+    const pastTime = new Date(currentTime.getTime() - happy_threshold_timespan);
     const faceDetections = gameLog.filter(event => event.gameEvent === "Face detected" && event.timestamp >= pastTime && event.timestamp <= currentTime);
     // console.log("faceDetections", faceDetections)
     if (faceDetections.length > 0) {
