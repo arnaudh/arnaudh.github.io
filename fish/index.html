@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Fish</title>
+    <title>FISHER</title>
     <meta charset="UTF-8">
+    <link rel="icon" href="fish.svg" type="image/svg+xml">
     <style>
         #game-container {
             position: relative;
             width: 800px;
-            height: 100px;
+            height: 200px;
+            border: 1px solid lightblue;
         }
         #fish {
             position: absolute;
@@ -35,9 +37,9 @@
     <button id="start-game" disabled>Game is loading...</button>
     <div id="countdown-display"></div>
     <div id="game-container">
-        <img id="fish" src="fish.png" alt="🐟">
-        <img id="starfish" src="starfish.png" alt="⭐">
-        <img id="gold-coin" src="gold_coin.png" alt="⛀">
+        <div id="gold-coin">🪙<!--<img src="gold_coin.png" alt="🪙">--></div>
+        <div id="starfish">⭐<!--<img src="starfish.png" alt="⭐">--></div>
+        <div id="fish">🐟<!--<img src="fish.png" alt="🐟">--></div>
         <audio id="ping-sound" src="ping.mp3"></audio>
     </div>
     <button id="download-log">Download Log</button>

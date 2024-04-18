@@ -1,17 +1,66 @@
 // TODO show/link to license of face-api.js
 
+
+
 const urlParams = new URLSearchParams(window.location.search);
+
+// *** Subject and session settings
+const subject_id = urlParams.get('subject_id');
+const session_number = urlParams.get('session_number');
+
+// *** Game settings (all times in milliseconds)
+const game_duration = urlParams.get('game_duration') || 5 * 60 * 1000; // 5 minutes
+const trial_duration = urlParams.get('trial_duration') || 5 * 1000; // 5 seconds
+const starfish_onset = urlParams.get('starfish_onset') || 1 * 1000;
+const starfish_offset = urlParams.get('starfish_offset') || 4 * 1000;
+const starfish_disappear_duration = urlParams.get('starfish_disappearance_duration') || 500;
+const gold_coin_duration = urlParams.get('gold_coin_duration') || 200;
+// Interval between end of face detection and beggining of next face detection
+const detect_faces_interval = urlParams.get('detect_faces_interval') || 100;
+const happy_threshold = urlParams.get('happy_threshold') || 0.1;
+const fish_speed = urlParams.get('fish_speed') || 1.2;
+
+// *** Debug settings
 const show_video = urlParams.get('show_video') === 'true';
 const log_detected = urlParams.get('log_detected') === 'true';
-const game_duration = urlParams.get('game_duration') || 300;
-const trial_duration = urlParams.get('trial_duration') || 5;
 
-const starfish_onset = 1;
-const starfish_offset = 4;
-
-if (game_duration % trial_duration != 0) {
-    throw new Error('Timer duration should be a multiple of trial duration');
+// Validation
+if (!subject_id || !session_number) {
+    error('Missing subject_id or session_number in URL parameters');
 }
+if (game_duration % trial_duration != 0) {
+    error('game_duration should be a multiple of trial_duration');
+}
+
+// *** Game variables
+let gameLog = [];
+let totalTime; // for game control
+let displayTime; // for display, updated every second
+let correctClick;
+let trialNumber;
+let starfishShowing;
+// Fish movement
+let fish_posX = 10; // Horizontal position
+let fish_posY = 10; // Vertical position
+let fish_directionX = 1; // Horizontal direction
+let fish_directionY = 1; // Vertical direction
+
+
+logEvent('Page loaded',  {
+    subject_id,
+    session_number,
+    game_duration,
+    trial_duration,
+    starfish_onset,
+    starfish_offset,
+    starfish_disappear_duration,
+    gold_coin_duration,
+    detect_faces_interval,
+    happy_threshold,
+    fish_speed,
+});
+
+
 
 async function loadModels() {
     logEvent('Loading models');
@@ -62,59 +111,29 @@ function setupWebcam() {
             };
         })
         .catch(err => {
-            console.error("Error accessing webcam:", err);
+            alert(`Error accessing webcam: ${err}`);
         });
 }
 
+const face_decetor_options = new faceapi.TinyFaceDetectorOptions();
+
+let detectFacesTimeout;
 async function detectFaces() {
-
-    // Check if the models are loaded
-    if (faceapi.nets.tinyFaceDetector.isLoaded && faceapi.nets.faceExpressionNet.isLoaded) {
-        // TODO try with bigger model, should give more accurate (though slower) face bounding box
-        // detection, and so better smile detection?
-        options = new faceapi.TinyFaceDetectorOptions();
-        detections = await faceapi.detectAllFaces(video, options).withFaceExpressions();
-
-        // console.log('detections', detections);
-
-
-
-        // detections.forEach(detection => {
-            // console.log(detection.expressions);
-            // if (detection.expressions.happy > 0.5) {
-            //     console.log("Smile Detected!");
-            // }
-        // });
-        if (detections.length > 0) {
-            logEvent('Face detected', detections[0].expressions);
-            smileDetected = detections[0].expressions.happy > 0.1;
-            if (smileDetected) {
-                logEvent('Smile detected');
-            }
-        } else { 
-            logEvent('No face detected');
-            // TODO error if no face detected?
-        }
-        // smileDetected = detections.some(detection => detection.expressions.happy > 0.1);
-    } else {
-        console.log('MODELS NOT LOADED');
+    detections = await faceapi.detectAllFaces(video, face_decetor_options).withFaceExpressions();
+    if (detections.length > 0) {
+        // Note there might be more than 1 face detected, we just take the first one.
+        // We could stop and display an error if more than 1 detected, but this could backfire in case the algorithm occasionally hallucinates other faces.
+        logEvent('Face detected', detections[0].expressions);
+    } else { 
+        logEvent('No face detected');
     }
-
-    // Repeat this function
-    // requestAnimationFrame(detectFaces);
-    detectFacesTimeout = setTimeout(detectFaces, 100);
+    // Repeat
+    detectFacesTimeout = setTimeout(detectFaces, detect_faces_interval);
 }
 
 
 
-let gameLog = [];
-let totalTime; // for game control
-let displayTime; // for display, updated every second
-let correctClick;
-let trialNumber;
-let starfishShowing;
 
-let detectFacesTimeout;
 
 function startGame() {
     startGameButton.disabled = true;
@@ -124,9 +143,9 @@ function startGame() {
     trialNumber = 0;
     starfishShowing = false;
     setupFishOnClick();
-    updateCountdownDisplay();
-    countdownTimer = setInterval(updateCountdownDisplay, 1000); // Update every second
+    countdown();
     detectFaces();
+    moveFish();
     startTrial();
 }
 
@@ -134,18 +153,20 @@ function setupFishOnClick() {
     const fish = document.getElementById('fish');
     fish.onclick = (event) => {
         event.stopPropagation(); // Prevent triggering the page-wide click logger
-        logEvent('Fish clicked');
         if (starfishShowing && happy_face()) {
             correctClick = true;
             logEvent('Fish clicked correctly');
-            starfish.style.transition = 'all 0.5s ease';
+            starfish.style.transition = `all ${starfish_disappear_duration}ms ease`;
             starfish.style.transform = 'translateY(-100px)';
             setTimeout(() => {
                 starfish.style.display = 'none';
+                starfish.style.transition = '';
                 starfish.style.transform = '';
                 logEvent('Starfish disappeared after correct click');
                 starfishShowing = false;
-            }, 500);
+            }, starfish_disappear_duration);
+        } else {
+            logEvent('Fish clicked incorrectly');
         }
     };
 }
@@ -156,8 +177,6 @@ function logPageClick(event) {
 }
 
 function startTrial() {
-    console.log('totalTime', totalTime);
-    console.log('trialNumber', trialNumber);
     if (totalTime == 0) {
         endGame();
         return;
@@ -165,14 +184,12 @@ function startTrial() {
     trialNumber++;
     logEvent('Trial started', trialNumber);
     correctClick = false;
-    moveFish();
-    let randomTime = Math.random() * (starfish_offset-starfish_onset) + starfish_onset; // Starfish appears randomly between 1-4 seconds
-    randomTime = randomTime * 1000;
-    console.log('randomTime', randomTime);
+    let randomTime = starfish_onset + Math.random() * (starfish_offset - starfish_onset);
+    // console.log('randomTime', randomTime);
     setTimeout(showStarfish, randomTime);
-    setTimeout(showGoldCoinAndPlayPing, trial_duration * 1000 - 100);
+    setTimeout(showGoldCoinAndPlayPing, trial_duration - gold_coin_duration);
 
-    totalTime -= 5; // Decrement the total game time by the duration of one trial
+    totalTime -= trial_duration; // Decrement the total game time by the duration of one trial
     // next trial (or end game if time is up)
     setTimeout(startTrial, 5000);
 }
@@ -180,8 +197,8 @@ function startTrial() {
 function showStarfish() {
     starfishShowing = true;
     starfish.style.display = 'block';
-    starfish.style.left = `${Math.random() * (800 - 32)}px`; // Assuming the game container and starfish width
-    starfish.style.top = `${Math.random() * (600 - 32)}px`; // Assuming the game container and starfish height
+    starfish.style.left = `${Math.random() * (gameContainer.clientWidth - starfish.clientWidth)}px`;
+    starfish.style.top = `${Math.random() * (gameContainer.clientHeight - starfish.clientHeight)}px`;
     logEvent('Starfish appeared');
 
     setTimeout(() => {
@@ -202,18 +219,17 @@ function showGoldCoinAndPlayPing() {
         setTimeout(() => {
             goldCoin.style.display = 'none';
             logEvent('Gold coin disappeared');
-        }, 100);
+        }, gold_coin_duration);
     }
 }
 
-function updateCountdownDisplay() {
-    let minutes = Math.floor(displayTime / 60);
-    let seconds = displayTime % 60;
+function countdown() {
+    let minutes = Math.floor(displayTime / 1000 / 60);
+    let seconds = (displayTime / 1000) % 60;
     countdownDisplay.textContent = `Time Remaining: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    if (displayTime == 0) {
-        clearInterval(countdownTimer);
-    } else {
-        displayTime--;
+    if (displayTime != 0) {
+        displayTime -= 1000;
+        setTimeout(countdown, 1000); // Update every second
     }
 }
 
@@ -221,16 +237,18 @@ function endGame() {
     clearTimeout(detectFacesTimeout);
     logEvent('Game ended');
     downloadButton.style.display = 'block';
+    fish.innerHTML = '<span style="font-size: 20px;">Game completed!</span>🐟';
 }
+
 function logEvent(gameEvent, metadata = null) {
-    const timestamp = new Date().toISOString();
-    // console.log('metadata', metadata);
-    const metadataEntries = metadata && typeof metadata === 'object' ? Object.entries(metadata).flat() : [metadata];
+    const timestamp = new Date();
+    // console.log('gameEvent', gameEvent, 'metadata', metadata);
     gameLog.push({ timestamp, gameEvent, metadata });
+    const metadataEntries = metadata && typeof metadata === 'object' ? Object.entries(metadata).flat() : [metadata];
     if (gameEvent.includes("detected") && !log_detected) {
         return;
     }
-    console.log(`${timestamp}: ${gameEvent} (${metadataEntries.map(entry => typeof entry === 'number' ? entry.toFixed(2) : entry).join(', ')})`);
+    console.log(`${timestamp.toISOString()}: ${gameEvent} (${metadataEntries.map(entry => typeof entry === 'number' ? entry.toFixed(2) : entry).join(', ')})`);
 }
 
 
@@ -241,60 +259,85 @@ function downloadLog() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "game_log.csv");
+    link.setAttribute("download", `FISHER_results_${subject_id}_${session_number}.csv`);
     link.click();
 }
 
 function eventToCsv(event) {
     let metadata = event.metadata;
     const metadataEntries = metadata && typeof metadata === 'object' ? Object.entries(metadata).flat() : [metadata];
-    return [event.timestamp, event.gameEvent].concat(metadataEntries).join(",");
+    return [event.timestamp.toISOString(), event.gameEvent].concat(metadataEntries).join(",");
 }
 
-
 function moveFish() {
-    let posX = 10; // Horizontal position
-    let posY = 10; // Vertical position
-    let directionX = 1; // Horizontal direction
-    let directionY = 1; // Vertical direction
-    const speed = 1.2; // Movement speed
-    const fishSize = fish.clientWidth;
-    const maxX = gameContainer.clientWidth - fishSize;
-    const maxY = gameContainer.clientHeight - fishSize;
-
     function move() {
         // Randomize direction change
         if (Math.random() < 0.01) {
-            directionX *= -1;
-            directionY *= -1;
+            fish_directionX *= -1;
+            fish_directionY *= -1;
         }
 
+        let maxX = gameContainer.clientWidth - fish.clientWidth;
+        let maxY = gameContainer.clientHeight - fish.clientHeight;
+
         // Change direction on reaching boundaries
-        if (posX + speed > maxX || posX - speed < 0) {
-            directionX *= -1;
+        if (fish_posX + fish_speed > maxX || fish_posX - fish_speed < 0) {
+            fish_directionX *= -1;
         }
-        if (posY + speed > maxY || posY - speed < 0) {
-            directionY *= -1;
+        if (fish_posY + fish_speed > maxY || fish_posY - fish_speed < 0) {
+            fish_directionY *= -1;
         }
 
         // Update positions
-        posX += speed * directionX;
-        posY += speed * directionY;
-        fish.style.left = posX + 'px';
-        fish.style.top = posY + 'px';
+        fish_posX += fish_speed * fish_directionX;
+        fish_posY += fish_speed * fish_directionY;
+
+        // Ensure fish within container boundaries
+        if (fish_posX < 0) {
+            fish_posX = 0;
+        } else if (fish_posX > maxX) {
+            fish_posX = maxX;
+        }
+        if (fish_posY < 0) {
+            fish_posY = 0;
+        } else if (fish_posY > maxY) {
+            fish_posY = maxY;
+        }
+
+        fish.style.left = fish_posX + 'px';
+        fish.style.top = fish_posY + 'px';
 
         requestAnimationFrame(move);
     }
 
     move();
 }
-
 function happy_face() {
-    // TODO
-    return true;
+    const currentTime = new Date();
+    const pastTime = new Date(currentTime.getTime() - 1000); // 1 second ago
+    const faceDetections = gameLog.filter(event => event.gameEvent === "Face detected" && event.timestamp >= pastTime && event.timestamp <= currentTime);
+    // console.log("faceDetections", faceDetections)
+    if (faceDetections.length > 0) {
+        const totalHappy = faceDetections.reduce((sum, event) => sum + event.metadata.happy, 0.0);
+        const averageHappy = totalHappy / faceDetections.length;
+        logEvent('Average happy', averageHappy);
+        return averageHappy >= happy_threshold;
+    } else {
+        logEvent('Average happy', null);
+        return false;
+    }
 }
 
 
+function error(s) {
+    alert(s);
+    throw new Error(s);
+}
+
 loadModels().then(() => {
-    setupWebcam();
+    if (faceapi.nets.tinyFaceDetector.isLoaded && faceapi.nets.faceExpressionNet.isLoaded) {
+        setupWebcam();
+    } else {
+        alert('Models could not be loaded, cannot start the game.');
+    }
 });
