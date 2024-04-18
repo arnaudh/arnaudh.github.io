@@ -18,6 +18,7 @@ const trial_duration = urlParams.get('trial_duration') || 5 * 1000; // default 5
 const starfish_onset = urlParams.get('starfish_onset') || 1 * 1000;
 const starfish_offset = urlParams.get('starfish_offset') || 4 * 1000;
 const starfish_disappear_duration = urlParams.get('starfish_disappear_duration') || 500;
+const coin_appear_delay = urlParams.get('coin_appear_delay') || 100;
 const gold_coin_duration = urlParams.get('gold_coin_duration') || 200;
 // Interval between end of face detection and beggining of next face detection
 const detect_faces_interval = urlParams.get('detect_faces_interval') || 100;
@@ -153,25 +154,29 @@ function startGame() {
 }
 
 function setupFishOnClick() {
-    const fish = document.getElementById('fish');
     fish.onclick = (event) => {
         event.stopPropagation(); // Prevent triggering the page-wide click logger
         if (starfishShowing && happy_face()) {
             correctClick = true;
             logEvent('Fish clicked correctly');
-            starfish.style.transition = `all ${starfish_disappear_duration}ms ease`;
-            starfish.style.transform = 'translateY(-100px)';
-            setTimeout(() => {
-                starfish.style.display = 'none';
-                starfish.style.transition = '';
-                starfish.style.transform = '';
-                logEvent('Starfish disappeared after correct click');
-                starfishShowing = false;
-            }, starfish_disappear_duration);
+            floatAwayStarfish();
+            setTimeout(showGoldCoinAndPlayPing, coin_appear_delay);
         } else {
             logEvent('Fish clicked incorrectly');
         }
     };
+}
+
+function floatAwayStarfish() {
+    starfish.style.transition = `all ${starfish_disappear_duration}ms ease`;
+    starfish.style.transform = 'translateY(-100px)';
+    setTimeout(() => {
+        starfish.style.display = 'none';
+        starfish.style.transition = '';
+        starfish.style.transform = '';
+        logEvent('Starfish disappeared after correct click');
+        starfishShowing = false;
+    }, starfish_disappear_duration);
 }
 
 function logPageClick(event) {
@@ -191,7 +196,6 @@ function startTrial() {
     let randomTime = starfish_onset + Math.random() * (starfish_offset - starfish_onset);
     // console.log('randomTime', randomTime);
     setTimeout(showStarfish, randomTime);
-    setTimeout(showGoldCoinAndPlayPing, trial_duration - gold_coin_duration);
 
     totalTime -= trial_duration; // Decrement the total game time by the duration of one trial
     // next trial (or end game if time is up)
@@ -215,16 +219,14 @@ function showStarfish() {
 }
 
 function showGoldCoinAndPlayPing() {
-    if (correctClick) {
-        logEvent('Gold coin appeared');
-        pingSound.play();
-        goldCoin.style.display = 'block';
+    logEvent('Gold coin appeared');
+    pingSound.play();
+    goldCoin.style.display = 'block';
 
-        setTimeout(() => {
-            goldCoin.style.display = 'none';
-            logEvent('Gold coin disappeared');
-        }, gold_coin_duration);
-    }
+    setTimeout(() => {
+        goldCoin.style.display = 'none';
+        logEvent('Gold coin disappeared');
+    }, gold_coin_duration);
 }
 
 function countdown() {
