@@ -1,16 +1,20 @@
 // TODO show/link to license of face-api.js
 
-
-
 const urlParams = new URLSearchParams(window.location.search);
 
+
+// **************** ADJUSTABLE URL SETTINGS **************** //
+// You can set the below parameters directly in the URL query string, e.g.:
+//   http://<address.com>/?subject_id=123&session_number=1&game_duration=300000&trial_duration=5000
+// Note the "||" indicates the default value of that parameter if not set in the URL.
+
 // *** Subject and session settings
-const subject_id = urlParams.get('subject_id');
-const session_number = urlParams.get('session_number');
+const subject_id = urlParams.get('subject_id') || error('Missing subject_id in URL parameters');
+const session_number = urlParams.get('session_number') || error('Missing session_number in URL parameters');
 
 // *** Game settings (all times in milliseconds)
-const game_duration = urlParams.get('game_duration') || 5 * 60 * 1000; // 5 minutes
-const trial_duration = urlParams.get('trial_duration') || 5 * 1000; // 5 seconds
+const game_duration = urlParams.get('game_duration') || 5 * 60 * 1000; // default 5 minutes
+const trial_duration = urlParams.get('trial_duration') || 5 * 1000; // default 5 seconds
 const starfish_onset = urlParams.get('starfish_onset') || 1 * 1000;
 const starfish_offset = urlParams.get('starfish_offset') || 4 * 1000;
 const starfish_disappear_duration = urlParams.get('starfish_disappearance_duration') || 500;
@@ -24,10 +28,10 @@ const fish_speed = urlParams.get('fish_speed') || 1.2;
 const show_video = urlParams.get('show_video') === 'true';
 const log_detected = urlParams.get('log_detected') === 'true';
 
+// **************** END OF ADJUSTABLE URL SETTINGS **************** //
+
+
 // Validation
-if (!subject_id || !session_number) {
-    error('Missing subject_id or session_number in URL parameters');
-}
 if (game_duration % trial_duration != 0) {
     error('game_duration should be a multiple of trial_duration');
 }
