@@ -4,30 +4,44 @@
     <title>Fish</title>
     <meta charset="UTF-8">
     <style>
-        #emojiContainer {
+        #game-container {
             position: relative;
-            height: 100px; /* Adjust as needed */
+            width: 800px;
+            height: 100px;
         }
-        #emoji {
+        #fish {
             position: absolute;
             font-size: 48px;
             cursor: pointer;
         }
+        #starfish {
+            display: none;
+            position: absolute;
+            font-size: 48px;
+        }
+        #gold-coin {
+            display: none;
+            position: absolute;
+            font-size: 48px;
+        }
+        #download-log {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <h1>Fish</h1>
+    <div>Click the fish!</div>
 
-    <div>CLICK THE FISH:</div>
-
-    <div>
-        <span id="timer">TIMER</span>
+    <button id="start-game" disabled>Game is loading...</button>
+    <div id="countdown-display"></div>
+    <div id="game-container">
+        <img id="fish" src="fish.png" alt="🐟">
+        <img id="starfish" src="starfish.png" alt="⭐">
+        <img id="gold-coin" src="gold_coin.png" alt="⛀">
+        <audio id="ping-sound" src="ping.mp3"></audio>
     </div>
+    <button id="download-log">Download Log</button>
 
-    <div id="emojiContainer">
-        <div id="emoji">🐟<span id="coin" style="visibility:hidden; position:absolute;">✨</span></div>
-    </div>
-    <div>Score: <span id="score">0</span></div>
 
     <script src="lib/face-api.min.js"></script>
     <script src="app.js"></script>
