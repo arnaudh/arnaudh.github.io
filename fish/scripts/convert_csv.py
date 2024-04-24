@@ -79,7 +79,7 @@ def convert_csv(file_path):
             if data['event'] == 'Starfish appeared':
                 starfish_image = data['metadata']
             if data['event'] == 'Average happy' and average_happy is None:
-                average_happy = float(data['metadata'])
+                average_happy = float(data['metadata']) if data['metadata'] else None
             if data['event'] == 'Fish clicked correctly':
                 fish_clicked_correctly_count += 1
             if data['event'] == 'Fish clicked incorrectly':
