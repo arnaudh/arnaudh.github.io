@@ -203,11 +203,16 @@ function startTrial() {
 }
 
 function showStarfish() {
-    starfishShowing = true;
+    const numStarfishImages = 8
+    let randomImageNumber = Math.floor(Math.random() * numStarfishImages) + 1;
+    let imageName = `Picture1.png-${randomImageNumber}.png`;
+    let imageUrl = `images/starfish/${imageName}`;
+    starfish.src = imageUrl;
     starfish.style.display = 'block';
+    starfishShowing = true;
     starfish.style.left = `${Math.random() * (gameContainer.clientWidth - starfish.clientWidth)}px`;
     starfish.style.top = `${Math.random() * (gameContainer.clientHeight - starfish.clientHeight)}px`;
-    logEvent('Starfish appeared');
+    logEvent('Starfish appeared', imageName);
 
     setTimeout(() => {
         if (!correctClick) {
