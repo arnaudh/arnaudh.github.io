@@ -205,7 +205,7 @@ function startTrial() {
 function showStarfish() {
     const numStarfishImages = 8
     let randomImageNumber = Math.floor(Math.random() * numStarfishImages) + 1;
-    let imageName = `Picture1.png-${randomImageNumber}.png`;
+    let imageName = `image${randomImageNumber}.png`;
     let imageUrl = `images/starfish/${imageName}`;
     starfish.src = imageUrl;
     starfish.style.display = 'block';
