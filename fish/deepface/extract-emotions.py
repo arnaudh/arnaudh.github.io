@@ -41,22 +41,23 @@
 # to run the script), you can run the script like so:
 #
 #   ```
-#   python extract-emotions.py <path_to_input_video> <path_to_output_csv> [--epochs HH:MM:SS-HH:MM:SS]
+#   python extract-emotions.py <path_to_input_video> <path_to_output_csv> [--interval x] [--epochs HH:MM:SS-HH:MM:SS]
 #   ```
+#
+# (See full usage with `python extract-emotions.py -h`)
 #
 # Examples:
 #
 #   ```
-#   python extract-emotions.py emotions_test.mov emotions.csv
+#   python extract-emotions.py emotions_test.mov emotions.csv --interval 2.5  # extract every 2.5 seconds
 #   python extract-emotions.py emotions_test.mov emotions.csv --epochs 00:00:00-00:00:30  # first 30 seconds only
-#   python extract-emotions.py emotions_test.mov emotions.csv --epochs 01:15:00-01:30:00 01:45:00-01:50:00  # 1hr15 - 1hr30 epoch1, and also 1hr45 - 1hr50 epoch2
+#   python extract-emotions.py emotions_test.mov emotions.csv --epochs 01:15:00-01:30:00 01:45:00-01:50:00  # epoch1 (1hr15 - 1hr30), and also epoch2 (1hr45 - 1hr50)
 #   ```
 #
 # Note the first time you run it, it will download model weights (~1GB) which may take some time.
 #
-
 import logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logging.info(f"Importing modules")
 
 import argparse
@@ -86,16 +87,29 @@ parser.add_argument(
     type=str,
     nargs='+',
     help=(
-        "Epochs in HH:MM:SS-HH:MM:SS format. If unspecified, will extract "
+        "Epochs to extract, in HH:MM:SS-HH:MM:SS format. If unspecified, will extract "
         "for the whole duration of the video."
     )
+)
+parser.add_argument(
+    '--interval',
+    type=float,
+    default=0.1,
+    help="Interval in seconds between frames to process. Default is 0.1 s."
 )
 
 def parse_time(time_str):
     h, m, s = map(int, time_str.split(':'))
     return h * 3600 + m * 60 + s
 
-def extract_emotions(video_path, output_csv, epochs=None, interval_ms=100):
+def seconds_to_hms(seconds):
+    h = int(seconds // 3600)
+    m = int((seconds % 3600) // 60)
+    s = int(seconds % 60)
+    ms = int((seconds - int(seconds)) * 1000)
+    return f"{h:02}:{m:02}:{s:02}.{ms:03}"
+
+def extract_emotions(video_path, output_csv, epochs=None, interval_s=100):
     # Initialize video capture
     logging.info(f"Opening video {video_path}")
     cap = cv2.VideoCapture(video_path)
@@ -117,8 +131,8 @@ def extract_emotions(video_path, output_csv, epochs=None, interval_ms=100):
         epochs_sec = [(0, duration)]
 
     # Calculate the interval in terms of frames
-    frame_interval = int((interval_ms / 1000) * fps)
-    logging.info(f"Frame interval: {frame_interval} frames ({interval_ms}ms)")
+    frame_interval = int(interval_s * fps)
+    logging.info(f"Frame interval: {frame_interval} frames ({interval_s}s)")
 
     # Prepare the output list
     results = []
@@ -126,7 +140,7 @@ def extract_emotions(video_path, output_csv, epochs=None, interval_ms=100):
     frame_number = 0
     current_epoch_idx = 0
     start_time, end_time = epochs_sec[current_epoch_idx]
-    epoch_label = f"epoch{current_epoch_idx + 1}"
+    epoch_label = f"epoch{current_epoch_idx + 1} ({epochs[current_epoch_idx]})"
 
     while True:
         ret, frame = cap.read()
@@ -149,15 +163,16 @@ def extract_emotions(video_path, output_csv, epochs=None, interval_ms=100):
                 try:
                     row = {
                         "epoch": epoch_label,
+                        "timestamp": seconds_to_hms(timestamp),
                         "timestamp_seconds": timestamp,
                         "gender": result['dominant_gender'],
                         "race": result['dominant_race'],
                         "age": result['age'],
                         "emotion": result['dominant_emotion'],
                     }
-                    row.update(result['gender'])
-                    row.update(result['race'])
-                    row.update(result['emotion'])
+                    row.update({f"gender:{k}": v for k, v in result['gender'].items()})
+                    row.update({f"race:{k}": v for k, v in result['race'].items()})
+                    row.update({f"emotion:{k}": v for k, v in result['emotion'].items()})
                     logging.info(f"Analysed {row}")
                     results.append(row)
                 except:
@@ -166,7 +181,7 @@ def extract_emotions(video_path, output_csv, epochs=None, interval_ms=100):
         if timestamp > end_time and current_epoch_idx < len(epochs_sec) - 1:
             current_epoch_idx += 1
             start_time, end_time = epochs_sec[current_epoch_idx]
-            epoch_label = f"epoch{current_epoch_idx + 1}"
+            epoch_label = f"epoch{current_epoch_idx + 1} ({epochs[current_epoch_idx]})"
 
         frame_number += 1
 
@@ -183,4 +198,4 @@ def extract_emotions(video_path, output_csv, epochs=None, interval_ms=100):
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    extract_emotions(args.video_path, args.output_csv, args.epochs)
+    extract_emotions(args.video_path, args.output_csv, args.epochs, args.interval)
