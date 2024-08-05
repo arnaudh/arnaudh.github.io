@@ -41,18 +41,22 @@
 # to run the script), you can run the script like so:
 #
 #   ```
-#   python extract-emotions.py <path_to_input_video> <path_to_output_csv>
+#   python extract-emotions.py <path_to_input_video> <path_to_output_csv> [--epochs HH:MM:SS-HH:MM:SS]
 #   ```
 #
-# For example:
+# Examples:
 #
 #   ```
 #   python extract-emotions.py emotions_test.mov emotions.csv
+#   python extract-emotions.py emotions_test.mov emotions.csv --epochs 00:00:00-00:00:30  # first 30 seconds only
+#   python extract-emotions.py emotions_test.mov emotions.csv --epochs 01:15:00-01:30:00 01:45:00-01:50:00  # 1hr15 - 1hr30 epoch1, and also 1hr45 - 1hr50 epoch2
 #   ```
+#
+# Note the first time you run it, it will download model weights (~1GB) which may take some time.
 #
 
 import logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logging.info(f"Importing modules")
 
 import argparse
@@ -61,15 +65,37 @@ import csv
 from deepface import DeepFace
 import sys
 
-
 parser = argparse.ArgumentParser(
-    description="Extract emotions from a video and save timestamps to a CSV file."
+    description=(
+        "Extract emotions and demographic data from a video and "
+        "save timestamps to a CSV file."
+    )
 )
-parser.add_argument('video_path', type=str, help="Path to the input video file.")
-parser.add_argument('output_csv', type=str, help="Path to the output CSV file.")
+parser.add_argument(
+    'video_path',
+    type=str,
+    help="Path to the input video file."
+)
+parser.add_argument(
+    'output_csv',
+    type=str,
+    help="Path to the output CSV file."
+)
+parser.add_argument(
+    '--epochs',
+    type=str,
+    nargs='+',
+    help=(
+        "Epochs in HH:MM:SS-HH:MM:SS format. If unspecified, will extract "
+        "for the whole duration of the video."
+    )
+)
 
+def parse_time(time_str):
+    h, m, s = map(int, time_str.split(':'))
+    return h * 3600 + m * 60 + s
 
-def extract_emotions(video_path, output_csv, interval_ms=100):
+def extract_emotions(video_path, output_csv, epochs=None, interval_ms=100):
     # Initialize video capture
     logging.info(f"Opening video {video_path}")
     cap = cv2.VideoCapture(video_path)
@@ -84,6 +110,12 @@ def extract_emotions(video_path, output_csv, interval_ms=100):
     logging.info(f"Video opened: {video_path}")
     logging.info(f"FPS: {fps}, Frame count: {frame_count}, Duration: {duration:.2f}s")
 
+    # Parse epochs into start and end times in seconds
+    if epochs:
+        epochs_sec = [(parse_time(epoch.split('-')[0]), parse_time(epoch.split('-')[1])) for epoch in epochs]
+    else:
+        epochs_sec = [(0, duration)]
+
     # Calculate the interval in terms of frames
     frame_interval = int((interval_ms / 1000) * fps)
     logging.info(f"Frame interval: {frame_interval} frames ({interval_ms}ms)")
@@ -92,30 +124,49 @@ def extract_emotions(video_path, output_csv, interval_ms=100):
     results = []
 
     frame_number = 0
+    current_epoch_idx = 0
+    start_time, end_time = epochs_sec[current_epoch_idx]
+    epoch_label = f"epoch{current_epoch_idx + 1}"
 
     while True:
         ret, frame = cap.read()
-
-        if not ret:
-            break
-
         timestamp = frame_number / fps
 
-        if frame_number % frame_interval == 0:
-            # Analyze the frame for emotions
-            result = DeepFace.analyze(frame, actions=['emotion'], enforce_detection=False)
+        if not ret or timestamp > epochs_sec[-1][1]:
+            break
 
-            if isinstance(result, list) and len(result) == 1:
-                result = result[0]
+        if start_time <= timestamp <= end_time:
+            if frame_number % frame_interval == 0:
+                # Analyze the frame for emotions and demographic data
+                result = DeepFace.analyze(frame, actions=['emotion', 'age', 'gender', 'race'], enforce_detection=False)
 
-            if 'dominant_emotion' in result and 'emotion' in result:
-                row = {"timestamp_seconds": timestamp, "dominant_emotion": result['dominant_emotion']}
-                logging.info(f"Analysing {row}")
-                row.update(result['emotion'])
+                if isinstance(result, list) and len(result) == 1:
+                    result = result[0]
+                else:
+                    raise ValueError(f"Unexpected results {result}")
 
-                results.append(row)
-            else:
-                raise ValueError(f"Unexpected result format at {timestamp:.2f}s: {result}")
+                logging.debug(f"result: {result}")
+                try:
+                    row = {
+                        "epoch": epoch_label,
+                        "timestamp_seconds": timestamp,
+                        "gender": result['dominant_gender'],
+                        "race": result['dominant_race'],
+                        "age": result['age'],
+                        "emotion": result['dominant_emotion'],
+                    }
+                    row.update(result['gender'])
+                    row.update(result['race'])
+                    row.update(result['emotion'])
+                    logging.info(f"Analysed {row}")
+                    results.append(row)
+                except:
+                    raise ValueError(f"Unexpected result format at {timestamp:.2f}s: {result}")
+
+        if timestamp > end_time and current_epoch_idx < len(epochs_sec) - 1:
+            current_epoch_idx += 1
+            start_time, end_time = epochs_sec[current_epoch_idx]
+            epoch_label = f"epoch{current_epoch_idx + 1}"
 
         frame_number += 1
 
@@ -132,4 +183,4 @@ def extract_emotions(video_path, output_csv, interval_ms=100):
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    extract_emotions(args.video_path, args.output_csv)
+    extract_emotions(args.video_path, args.output_csv, args.epochs)
