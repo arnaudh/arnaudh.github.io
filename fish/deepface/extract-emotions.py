@@ -128,6 +128,7 @@ def extract_emotions(video_path, output_csv, epochs=None, interval_s=100):
     if epochs:
         epochs_sec = [(parse_time(epoch.split('-')[0]), parse_time(epoch.split('-')[1])) for epoch in epochs]
     else:
+        epochs = ["full video"]
         epochs_sec = [(0, duration)]
 
     # Calculate the interval in terms of frames
