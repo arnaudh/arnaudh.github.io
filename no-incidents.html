@@ -17,10 +17,33 @@
             font-family: Arial, sans-serif;
         }
 
+        #latestMilestoneContainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin: 20px auto 10px auto; /* Add margin to space it from the grid */
+            text-align: center;
+
+            color: white;
+        }
+
+        #latestMilestoneContainer .emoji {
+            aspect-ratio: 1;
+            width: 180px; /* Size of the circle */
+            height: 180px;
+            background-color: #455a64; /* Same color as future milestones */
+            border-radius: 50%; /* Circular shape */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 8em; /* Size of the emoji inside the circle */
+            color: white;
+        }
         #totalDaysContainer {
             color: white;
             font-size: 2em;
-            margin: 30px auto;
+            margin: 10px auto;
             width: 100%; /* Ensure it takes up the full width for horizontal centering */
             text-align: center; /* Center the text inside the div */
         }
@@ -80,8 +103,9 @@
     </style>
 </head>
 <body>
+    <div id="latestMilestoneContainer"></div> <!-- New container for the milestone emoji -->
     <div id="totalDaysContainer">
-        ⭐ <span id="totalDays"></span> days ⭐
+        <span id="totalDays"></span> days
     </div>
     <div id="grid"></div>
     <div class="tooltip" id="tooltip"></div>
@@ -129,6 +153,14 @@
 
         const totalDays = Math.floor((currentDate - lastIncidentDate) / (1000 * 60 * 60 * 24));
         document.getElementById('totalDays').innerText = totalDays;
+
+        // Find the latest unlocked milestone
+        const latestMilestone = milestones.slice().reverse().find(m => m.days <= totalDays);
+
+        if (latestMilestone) {
+            const milestoneContainer = document.getElementById("latestMilestoneContainer");
+            milestoneContainer.innerHTML = `<div class="emoji">${latestMilestone.emoji}</div>`;
+        }
 
         for (let d = new Date(new Date(startDate).setHours(0,0,0,0)); d <= endDate; d.setDate(d.getDate() + 1)) {
             const dayElement = document.createElement("div");
