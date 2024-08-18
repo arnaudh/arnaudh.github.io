@@ -5,22 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>No Incident Days Grid</title>
     <style>
+
         body {
-            margin: 0;
-            display: flex;
+/*            margin: 0;*/
+/*            display: flex;*/
             justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #2c2c2c; /* Dark grey background */
+            align-items: flex-start; /* Align items to start (top) */
+            flex-direction: column; /* Stack items vertically */
+/*            min-height: 100vh;*/
+            background-color: #2c2c2c; /* Very dark grey background */
             font-family: Arial, sans-serif;
         }
+
+        #totalDaysContainer {
+            color: white;
+            font-size: 2em;
+            margin: 30px auto;
+            width: 100%; /* Ensure it takes up the full width for horizontal centering */
+            text-align: center; /* Center the text inside the div */
+        }
+
         #grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); /* Adjusts to available space */
             grid-gap: 5px;
-            width: 90vw;
-/*            height: 90vh;*/
+            width: 90%; /* Allow the grid to occupy full width */
+            justify-content: center; /* Center the grid horizontally */
+            margin: 50px auto 0 auto; /* Add gap at the top with margin-top */
         }
+
         .day {
             aspect-ratio: 1; /* Ensure the element is perfectly square */
             position: relative;
@@ -29,28 +42,29 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.6em; /* Bigger font size */
+            font-size: 45px; /* Bigger font size */
             color: white;
             transition: transform 0.2s;
         }
         .day:hover {
-            transform: scale(1.1); /* Slight zoom on hover */
+            transform: scale(2); /* Slight zoom on hover */
+            z-index: 2;
         }
-        .red {
-            background-color: #e57373; /* Softer red */
+        .past-incident {
+            background-color: #e57373; /* red */
         }
-        .greyish-blue {
-            background-color: #78909c; /* Softer greyish-blue */
+        .past-day {
+            background-color: #e0ecf5; /* light grey */
         }
-        .blue {
-            background-color: #64b5f6; /* Softer blue */
-            color: white;
+        .past-milestone {
+            background-color: #e0ecf5; /* light grey */
         }
-        .white {
-            background-color: #b0bec5; /* Softer white/grey */
+        .future-day {
+            background-color: #455a64; /* dark grey */
         }
-        .grey {
-            background-color: #455a64; /* Softer grey */
+        .future-milestone {
+            background-color: #455a64; /* dark grey */
+
         }
         .tooltip {
             position: absolute;
@@ -66,6 +80,9 @@
     </style>
 </head>
 <body>
+    <div id="totalDaysContainer">
+        ⭐ <span id="totalDays"></span> days ⭐
+    </div>
     <div id="grid"></div>
     <div class="tooltip" id="tooltip"></div>
 
@@ -85,6 +102,7 @@
             { days: 21, label: "3 weeks", emoji: "&#x1F342;" },
             { days: 30, label: "1 month", emoji: "&#x1F431;" },
             { days: 42, label: "6 weeks", emoji: "&#x1F343;" },
+            { days: 50, label: "50 days", emoji: "&#x1F98D;" },
             { days: 61, label: "2 months", emoji: "&#x1F40C;" },
             { days: 91, label: "3 months", emoji: "&#x1F41E;" },
             { days: 100, label: "100 days", emoji: "&#x1F42F;" },
@@ -109,6 +127,9 @@
 
         currentDate = new Date(new Date().setHours(0,0,0,0));
 
+        const totalDays = Math.floor((currentDate - lastIncidentDate) / (1000 * 60 * 60 * 24));
+        document.getElementById('totalDays').innerText = totalDays;
+
         for (let d = new Date(new Date(startDate).setHours(0,0,0,0)); d <= endDate; d.setDate(d.getDate() + 1)) {
             const dayElement = document.createElement("div");
             dayElement.className = "day";
@@ -132,22 +153,23 @@
             };
 
             if (d.toDateString() === lastIncidentDate.toDateString()) {
-                dayElement.classList.add("red");
+                dayElement.classList.add("past-incident");
             } else if (d > lastIncidentDate && d < currentDate) {
                 if (milestone) {
-                    dayElement.classList.add("blue");
+                    dayElement.classList.add("past-milestone");
                     dayElement.innerHTML = milestone.emoji;
                 } else {
-                    dayElement.classList.add("greyish-blue");
+                    dayElement.classList.add("past-day");
                 }
             } else if (d >= currentDate) {
                 if (milestone) {
-                    dayElement.classList.add("grey");
+                    dayElement.classList.add("future-milestone");
+                    dayElement.innerHTML = "?";
                 } else {
-                    dayElement.classList.add("white");
+                    dayElement.classList.add("future-day");
                 }
             } else {
-                dayElement.classList.add("white");
+                // dayElement.classList.add("white");
             }
 
             grid.appendChild(dayElement);
