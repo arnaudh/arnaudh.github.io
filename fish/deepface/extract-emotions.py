@@ -64,9 +64,6 @@ from deepface import DeepFace
 import argparse
 from datetime import datetime
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-logging.info(f"Importing modules")
-
 parser = argparse.ArgumentParser(
     description=(
         "Extract emotions and demographic data from a video, save frames with detected faces, "
@@ -98,6 +95,18 @@ parser.add_argument(
     default=0.1,
     help="Interval in seconds between frames to process. Default is 0.1 s."
 )
+parser.add_argument(
+    '--debug',
+    action='store_true',
+    help="If set, enable debug mode and save frames to a directory."
+)
+
+args = parser.parse_args()
+
+# Set logging level based on debug flag
+log_level = logging.DEBUG if args.debug else logging.INFO
+logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.info(f"Importing modules")
 
 def parse_time(time_str):
     h, m, s = map(int, time_str.split(':'))
@@ -110,7 +119,7 @@ def seconds_to_hms(seconds):
     ms = int((seconds - int(seconds)) * 1000)
     return f"{h:02}:{m:02}:{s:02}.{ms:03}"
 
-def extract_emotions(video_path, output_csv, epochs=None, interval_s=100):
+def extract_emotions(video_path, output_csv, epochs=None, interval_s=0.1, save_frames=False):
     # Initialize video capture
     logging.info(f"Opening video {video_path}")
     cap = cv2.VideoCapture(video_path)
@@ -125,11 +134,14 @@ def extract_emotions(video_path, output_csv, epochs=None, interval_s=100):
     logging.info(f"Video opened: {video_path}")
     logging.info(f"FPS: {fps}, Frame count: {frame_count}, Duration: {duration:.2f}s")
 
-    # Create a directory to save frames
-    timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-    frames_dir = f"frames_{timestamp_str}"
-    os.makedirs(frames_dir, exist_ok=True)
-    logging.info(f"Saving frames to directory: {frames_dir}")
+    # Create a directory to save frames if in debug mode
+    if save_frames:
+        timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+        frames_dir = f"frames_{timestamp_str}"
+        os.makedirs(frames_dir, exist_ok=True)
+        logging.info(f"Saving frames to directory: {frames_dir}")
+    else:
+        frames_dir = None
 
     # Parse epochs into start and end times in seconds
     if epochs:
@@ -165,16 +177,16 @@ def extract_emotions(video_path, output_csv, epochs=None, interval_s=100):
                 # Remove those with face_confidence == 0 (dunno why these show up in the first place)
                 face_results = [r for r in face_results if r['face_confidence'] > 0]
 
+                # Draw rectangle around detected face and save the frame if in debug mode
+                if save_frames:
+                    for result in face_results:
+                        region = result['region']
+                        x, y, w, h = region['x'], region['y'], region['w'], region['h']
+                        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-                # Draw rectangle around detected face and save the frame
-                for result in face_results:
-                    region = result['region']
-                    x, y, w, h = region['x'], region['y'], region['w'], region['h']
-                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
-                frame_filename = f"{frames_dir}/frame_{frame_number:06d}.jpg"
-                cv2.imwrite(frame_filename, frame)
-                logging.info(f"{log_prefix} Saved frame to {frame_filename}")
+                    frame_filename = f"{frames_dir}/frame_{frame_number:06d}.jpg"
+                    cv2.imwrite(frame_filename, frame)
+                    logging.info(f"{log_prefix} Saved frame to {frame_filename}")
 
                 if len(face_results) != 1:
                     logging.warn(f"{log_prefix} Skipping because found {len(face_results)} faces")
@@ -196,9 +208,9 @@ def extract_emotions(video_path, output_csv, epochs=None, interval_s=100):
                         row.update({f"gender:{k}": v for k, v in result['gender'].items()})
                         row.update({f"race:{k}": v for k, v in result['race'].items()})
                         row.update({f"emotion:{k}": v for k, v in result['emotion'].items()})
-                        logging.info(f"{log_prefix} Analysed {row}")
+                        logging.info(f"{log_prefix} Analysis: {row['gender']} {row['race']} {row['age']} {row['emotion']}")
+                        logging.debug(f"{log_prefix} Full analysis: {row}")
                         results.append(row)
-
 
                     except:
                         raise ValueError(f"{log_prefix} Unexpected result format at {timestamp:.2f}s: {result}")
@@ -220,8 +232,8 @@ def extract_emotions(video_path, output_csv, epochs=None, interval_s=100):
         writer.writerows(results)
 
     logging.info(f"Results saved to {output_csv}")
-    logging.info(f"Frames saved in directory: {frames_dir}")
+    if save_frames:
+        logging.info(f"Frames saved in directory: {frames_dir}")
 
 if __name__ == "__main__":
-    args = parser.parse_args()
-    extract_emotions(args.video_path, args.output_csv, args.epochs, args.interval)
+    extract_emotions(args.video_path, args.output_csv, args.epochs, args.interval, save_frames=args.debug)
