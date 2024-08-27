@@ -57,19 +57,20 @@
 # Note the first time you run it, it will download model weights (~1GB) which may take some time.
 #
 import logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logging.info(f"Importing modules")
-
-import argparse
+import os
 import cv2
 import csv
 from deepface import DeepFace
-import sys
+import argparse
+from datetime import datetime
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.info(f"Importing modules")
 
 parser = argparse.ArgumentParser(
     description=(
-        "Extract emotions and demographic data from a video and "
-        "save timestamps to a CSV file."
+        "Extract emotions and demographic data from a video, save frames with detected faces, "
+        "and save timestamps to a CSV file."
     )
 )
 parser.add_argument(
@@ -124,6 +125,12 @@ def extract_emotions(video_path, output_csv, epochs=None, interval_s=100):
     logging.info(f"Video opened: {video_path}")
     logging.info(f"FPS: {fps}, Frame count: {frame_count}, Duration: {duration:.2f}s")
 
+    # Create a directory to save frames
+    timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+    frames_dir = f"frames_{timestamp_str}"
+    os.makedirs(frames_dir, exist_ok=True)
+    logging.info(f"Saving frames to directory: {frames_dir}")
+
     # Parse epochs into start and end times in seconds
     if epochs:
         epochs_sec = [(parse_time(epoch.split('-')[0]), parse_time(epoch.split('-')[1])) for epoch in epochs]
@@ -152,18 +159,33 @@ def extract_emotions(video_path, output_csv, epochs=None, interval_s=100):
 
         if start_time <= timestamp <= end_time:
             if frame_number % frame_interval == 0:
+                log_prefix = f"[timestamp {timestamp:.2f}s]"
                 # Analyze the frame for emotions and demographic data
-                face_results = DeepFace.analyze(frame, actions=['emotion', 'age', 'gender', 'race'], enforce_detection=False)
+                face_results = DeepFace.analyze(frame, actions=['emotion', 'age', 'gender', 'race'], enforce_detection=False, silent=True)
+                # Remove those with face_confidence == 0 (dunno why these show up in the first place)
+                face_results = [r for r in face_results if r['face_confidence'] > 0]
+
+
+                # Draw rectangle around detected face and save the frame
+                for result in face_results:
+                    region = result['region']
+                    x, y, w, h = region['x'], region['y'], region['w'], region['h']
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+                frame_filename = f"{frames_dir}/frame_{frame_number:06d}.jpg"
+                cv2.imwrite(frame_filename, frame)
+                logging.info(f"{log_prefix} Saved frame to {frame_filename}")
 
                 if len(face_results) != 1:
-                    logging.info(f"[timestamp {timestamp:.2f}s] Skipping because found {len(face_results)} faces")
+                    logging.warn(f"{log_prefix} Skipping because found {len(face_results)} faces")
                 else:
                     result = face_results[0]
 
-                    logging.debug(f"result: {result}")
+                    logging.debug(f"{log_prefix} result: {result}")
                     try:
                         row = {
                             "epoch": epoch_label,
+                            "frame": frame_number,
                             "timestamp": seconds_to_hms(timestamp),
                             "timestamp_seconds": timestamp,
                             "gender": result['dominant_gender'],
@@ -174,10 +196,12 @@ def extract_emotions(video_path, output_csv, epochs=None, interval_s=100):
                         row.update({f"gender:{k}": v for k, v in result['gender'].items()})
                         row.update({f"race:{k}": v for k, v in result['race'].items()})
                         row.update({f"emotion:{k}": v for k, v in result['emotion'].items()})
-                        logging.info(f"Analysed {row}")
+                        logging.info(f"{log_prefix} Analysed {row}")
                         results.append(row)
+
+
                     except:
-                        raise ValueError(f"Unexpected result format at {timestamp:.2f}s: {result}")
+                        raise ValueError(f"{log_prefix} Unexpected result format at {timestamp:.2f}s: {result}")
 
         if timestamp > end_time and current_epoch_idx < len(epochs_sec) - 1:
             current_epoch_idx += 1
@@ -196,6 +220,7 @@ def extract_emotions(video_path, output_csv, epochs=None, interval_s=100):
         writer.writerows(results)
 
     logging.info(f"Results saved to {output_csv}")
+    logging.info(f"Frames saved in directory: {frames_dir}")
 
 if __name__ == "__main__":
     args = parser.parse_args()
