@@ -153,31 +153,31 @@ def extract_emotions(video_path, output_csv, epochs=None, interval_s=100):
         if start_time <= timestamp <= end_time:
             if frame_number % frame_interval == 0:
                 # Analyze the frame for emotions and demographic data
-                result = DeepFace.analyze(frame, actions=['emotion', 'age', 'gender', 'race'], enforce_detection=False)
+                face_results = DeepFace.analyze(frame, actions=['emotion', 'age', 'gender', 'race'], enforce_detection=False)
 
-                if isinstance(result, list) and len(result) == 1:
-                    result = result[0]
+                if len(face_results) != 1:
+                    logging.info(f"[timestamp {timestamp:.2f}s] Skipping because found {len(face_results)} faces")
                 else:
-                    raise ValueError(f"Unexpected results {result}")
+                    result = face_results[0]
 
-                logging.debug(f"result: {result}")
-                try:
-                    row = {
-                        "epoch": epoch_label,
-                        "timestamp": seconds_to_hms(timestamp),
-                        "timestamp_seconds": timestamp,
-                        "gender": result['dominant_gender'],
-                        "race": result['dominant_race'],
-                        "age": result['age'],
-                        "emotion": result['dominant_emotion'],
-                    }
-                    row.update({f"gender:{k}": v for k, v in result['gender'].items()})
-                    row.update({f"race:{k}": v for k, v in result['race'].items()})
-                    row.update({f"emotion:{k}": v for k, v in result['emotion'].items()})
-                    logging.info(f"Analysed {row}")
-                    results.append(row)
-                except:
-                    raise ValueError(f"Unexpected result format at {timestamp:.2f}s: {result}")
+                    logging.debug(f"result: {result}")
+                    try:
+                        row = {
+                            "epoch": epoch_label,
+                            "timestamp": seconds_to_hms(timestamp),
+                            "timestamp_seconds": timestamp,
+                            "gender": result['dominant_gender'],
+                            "race": result['dominant_race'],
+                            "age": result['age'],
+                            "emotion": result['dominant_emotion'],
+                        }
+                        row.update({f"gender:{k}": v for k, v in result['gender'].items()})
+                        row.update({f"race:{k}": v for k, v in result['race'].items()})
+                        row.update({f"emotion:{k}": v for k, v in result['emotion'].items()})
+                        logging.info(f"Analysed {row}")
+                        results.append(row)
+                    except:
+                        raise ValueError(f"Unexpected result format at {timestamp:.2f}s: {result}")
 
         if timestamp > end_time and current_epoch_idx < len(epochs_sec) - 1:
             current_epoch_idx += 1
