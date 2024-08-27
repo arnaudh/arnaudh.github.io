@@ -66,8 +66,7 @@ from datetime import datetime
 
 parser = argparse.ArgumentParser(
     description=(
-        "Extract emotions and demographic data from a video, save frames with detected faces, "
-        "and save timestamps to a CSV file."
+        "Extract emotions and demographic data from a video."
     )
 )
 parser.add_argument(
@@ -98,7 +97,10 @@ parser.add_argument(
 parser.add_argument(
     '--debug',
     action='store_true',
-    help="If set, enable debug mode and save frames to a directory."
+    help=(
+        "If set, provide more verbose output in terminal, and save frames with face areas "
+        "drawn over them as jpg in a newly created `frames_<command_run_timestamp>` directory."
+    )
 )
 
 args = parser.parse_args()
@@ -208,8 +210,8 @@ def extract_emotions(video_path, output_csv, epochs=None, interval_s=0.1, save_f
                         row.update({f"gender:{k}": v for k, v in result['gender'].items()})
                         row.update({f"race:{k}": v for k, v in result['race'].items()})
                         row.update({f"emotion:{k}": v for k, v in result['emotion'].items()})
-                        logging.info(f"{log_prefix} Analysis: {row['gender']} {row['race']} {row['age']} {row['emotion']}")
-                        logging.debug(f"{log_prefix} Full analysis: {row}")
+                        logging.info(f"{log_prefix} Detected: {row['gender']} {row['race']} {row['age']} {row['emotion']}")
+                        logging.debug(f"{log_prefix} Detected (full): {row}")
                         results.append(row)
 
                     except:
