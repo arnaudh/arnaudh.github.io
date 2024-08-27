@@ -190,12 +190,13 @@ def extract_emotions(video_path, output_csv, epochs=None, interval_s=0.1, save_f
                     cv2.imwrite(frame_filename, frame)
                     logging.info(f"{log_prefix} Saved frame to {frame_filename}")
 
+                logging.debug(f"{log_prefix} face_results ({len(face_results)}): {face_results}")
+
                 if len(face_results) != 1:
                     logging.warn(f"{log_prefix} Skipping because found {len(face_results)} faces")
                 else:
                     result = face_results[0]
 
-                    logging.debug(f"{log_prefix} result: {result}")
                     try:
                         row = {
                             "epoch": epoch_label,
@@ -211,7 +212,6 @@ def extract_emotions(video_path, output_csv, epochs=None, interval_s=0.1, save_f
                         row.update({f"race:{k}": v for k, v in result['race'].items()})
                         row.update({f"emotion:{k}": v for k, v in result['emotion'].items()})
                         logging.info(f"{log_prefix} Detected: {row['gender']} {row['race']} {row['age']} {row['emotion']}")
-                        logging.debug(f"{log_prefix} Detected (full): {row}")
                         results.append(row)
 
                     except:
