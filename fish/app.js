@@ -159,9 +159,12 @@ let detectFacesTimeout;
 async function detectFaces() {
     detections = await faceapi.detectAllFaces(video, face_decetor_options).withFaceExpressions();
     if (detections.length > 0) {
-        // Note there might be more than 1 face detected, we just take the first one.
-        // We could stop and display an error if more than 1 detected, but this could backfire in case the algorithm occasionally hallucinates other faces.
-        logEvent('Face detected', detections[0].expressions);
+        // Iterate over each detection to log specific expressions or other properties
+        detections.forEach((detection, index) => {
+            let message = index == 0 ? 'Face detected' : `Face detected ${index + 1}`;
+            logEvent(message, detection.expressions);
+        });
+
     } else { 
         logEvent('No face detected');
     }
