@@ -30,7 +30,7 @@ const urlParams = new URLSearchParams(window.location.search);
 
 // **************** ADJUSTABLE URL SETTINGS **************** //
 // You can set the below parameters directly in the URL query string, e.g.:
-//   http://<address.com>/?subject_id=123&session_number=1&game_duration=300000&trial_duration=5000
+//   http://<address.com>/?subject_id=123&session_number=1&number_of_trials=60&trial_duration=5000
 // Note the "||" indicates the default value of that parameter if not set in the URL.
 
 // *** Subject and session settings
@@ -45,11 +45,18 @@ const starfish_offset = urlParams.get('starfish_offset') || 4 * 1000;
 const starfish_disappear_duration = urlParams.get('starfish_disappear_duration') || 500;
 const coin_appear_delay = urlParams.get('coin_appear_delay') || 100;
 const gold_coin_duration = urlParams.get('gold_coin_duration') || 200;
+const fish_speed = urlParams.get('fish_speed') || 0.8;
 // Interval between end of face detection and beggining of next face detection
 const detect_faces_interval = urlParams.get('detect_faces_interval') || 100;
-const happy_threshold = urlParams.get('happy_threshold') || 0.1;
-const happy_threshold_timespan = urlParams.get('happy_threshold_timespan') || 1000;
-const fish_speed = urlParams.get('fish_speed') || 0.8;
+// Threshold settings.
+// Originally prefixed these settings with "happy_", but I realized this could be seen by
+// participants in the URL and may interfere with the experiment, hence now these are without
+// the "happy_" prefix (but still allowing the "happy_" prefixed names for backward compatibility,
+// so previously shared URLs still work).
+// Note default timestamp depends on mode (1s for percent, 4s for ratio).
+const threshold_mode = urlParams.get('threshold_mode') || urlParams.get('happy_threshold_mode') || 'percent';  // or 'ratio'
+const threshold = urlParams.get('threshold') || urlParams.get('happy_threshold') || 0.1;
+const threshold_timespan = urlParams.get('threshold_timespan') || urlParams.get('happy_threshold_timespan') || (threshold_mode == 'percent' ? 1000 : 4000);
 
 // *** Debug settings
 const show_video = urlParams.get('show_video') === 'true';
@@ -83,9 +90,11 @@ logEvent('Page loaded',  {
     starfish_offset,
     starfish_disappear_duration,
     gold_coin_duration,
-    detect_faces_interval,
-    happy_threshold,
     fish_speed,
+    detect_faces_interval,
+    threshold_mode,
+    threshold,
+    threshold_timespan,
 });
 
 
@@ -181,7 +190,7 @@ function startGame() {
 function setupFishOnClick() {
     fish.onclick = (event) => {
         event.stopPropagation(); // Prevent triggering the page-wide click logger
-        if (starfishShowing && happy_face()) {
+        if (starfishShowing && is_happy_face()) {
             correctClick = true;
             logEvent('Fish clicked correctly');
             floatAwayStarfish();
@@ -349,18 +358,35 @@ function moveFish() {
 
     move();
 }
-function happy_face() {
+function is_happy_face() {
     const currentTime = new Date();
-    const pastTime = new Date(currentTime.getTime() - happy_threshold_timespan);
+    const pastTime = new Date(currentTime.getTime() - threshold_timespan);
     const faceDetections = gameLog.filter(event => event.gameEvent === "Face detected" && event.timestamp >= pastTime && event.timestamp <= currentTime);
     // console.log("faceDetections", faceDetections)
     if (faceDetections.length > 0) {
         const totalHappy = faceDetections.reduce((sum, event) => sum + event.metadata.happy, 0.0);
+        const totalFearful = faceDetections.reduce((sum, event) => sum + event.metadata.fearful, 0.0);
         const averageHappy = totalHappy / faceDetections.length;
-        logEvent('Average happy', averageHappy);
-        return averageHappy >= happy_threshold;
+
+        if (threshold_mode == 'percent') {
+            logEvent('Average happy', averageHappy);
+            return averageHappy >= threshold;
+        } else if (threshold_mode == 'ratio') {
+            logEvent('Total happy', totalHappy);
+            logEvent('Total fearful', totalFearful);
+            return totalHappy > totalFearful;
+        } else {
+            error(`Unknown threshold_mode "${threshold_mode}"`)
+        }
     } else {
-        logEvent('Average happy', null);
+        if (threshold_mode == 'percent') {
+            logEvent('Average happy', null);
+        } else if (threshold_mode == 'ratio') {
+            logEvent('Total happy', null);
+            logEvent('Total fearful', null);
+        } else {
+            error(`Unknown threshold_mode "${threshold_mode}"`)
+        }
         return false;
     }
 }
