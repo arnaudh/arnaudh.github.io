@@ -311,10 +311,18 @@ function downloadLog() {
     link.click();
 }
 
+
+function escapeCsv(value) {
+    // Escape double quotes by doubling them
+    value_doubled_quotes = String(value).replace(/"/g, '""');
+    // Always wrap the value in double quotes
+    return `"${value_doubled_quotes}"`;
+}
+
 function eventToCsv(event) {
     let metadata = event.metadata;
     const metadataEntries = metadata && typeof metadata === 'object' ? Object.entries(metadata).flat() : [metadata];
-    return [event.timestamp.toISOString(), event.gameEvent].concat(metadataEntries).join(",");
+    return [event.timestamp.toISOString(), event.gameEvent].concat(metadataEntries).map(escapeCsv).join(",");
 }
 
 function moveFish() {
@@ -400,10 +408,74 @@ function error(s) {
     throw new Error(s);
 }
 
-loadModels().then(() => {
-    if (faceapi.nets.tinyFaceDetector.isLoaded && faceapi.nets.faceExpressionNet.isLoaded) {
-        setupWebcam();
-    } else {
-        alert('Models could not be loaded, cannot start the game.');
+function collectSystemInfo(callback) {
+    console.log('Collecting system info...')
+    // Helper function to collect all enumerable properties of an object
+    function getProperties(obj) {
+        let result = {};
+        for (let key in obj) {
+            if (obj.hasOwnProperty(key) || typeof obj[key] !== 'function') {
+                try {
+                    result[key] = obj[key];
+                } catch (error) {
+                    result[key] = "N/A"; // If access to property fails (e.g., security issues)
+                }
+            }
+        }
+        return result;
     }
+
+    // Create the info object
+    let info = {
+        navigator: getProperties(navigator),
+        screen: getProperties(screen),
+        window: {
+            innerWidth: window.innerWidth,
+            innerHeight: window.innerHeight,
+            outerWidth: window.outerWidth,
+            outerHeight: window.outerHeight,
+            screenX: window.screenX,
+            screenY: window.screenY,
+            location: {
+                href: window.location.href,
+                protocol: window.location.protocol,
+                host: window.location.host,
+                hostname: window.location.hostname,
+                pathname: window.location.pathname,
+                hash: window.location.hash
+            }
+        }
+    };
+
+    // Pass the info object to the callback
+    callback(info);
+}
+
+function flattenObject(obj, parentKey = '', result = {}) {
+  for (let key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      const newKey = parentKey ? `${parentKey}.${key}` : key;
+
+      if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+        // Recursively call for nested objects
+        flattenObject(obj[key], newKey, result);
+      } else {
+        // Assign the value to the flat object
+        result[newKey] = obj[key];
+      }
+    }
+  }
+  return result;
+}
+
+collectSystemInfo(function(info) {
+    logEvent('System info', flattenObject(info));
+    loadModels().then(() => {
+        if (faceapi.nets.tinyFaceDetector.isLoaded && faceapi.nets.faceExpressionNet.isLoaded) {
+            setupWebcam();
+        } else {
+            alert('Models could not be loaded, cannot start the game.');
+        }
+    });
 });
+
