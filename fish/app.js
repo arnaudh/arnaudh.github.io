@@ -68,6 +68,7 @@ const log_detected = urlParams.get('log_detected') === 'true';
 const game_duration = number_of_trials * trial_duration;
 
 // *** Game variables
+let gameActive = false;
 let gameLog = [];
 let totalTime; // for game control
 let displayTime; // for display, updated every second
@@ -190,8 +191,10 @@ async function detectFaces() {
     } else { 
         logEvent('No face detected');
     }
-    // Repeat
-    detectFacesTimeout = setTimeout(detectFaces, detect_faces_interval);
+    if (gameActive) {
+        // Repeat
+        detectFacesTimeout = setTimeout(detectFaces, detect_faces_interval);
+    }
 }
 
 
@@ -199,6 +202,7 @@ async function detectFaces() {
 
 
 function startGame() {
+    gameActive = true;
     startGameButton.disabled = true;
     logEvent('Game started');
     totalTime = game_duration;
@@ -304,6 +308,7 @@ function countdown() {
 }
 
 function endGame() {
+    gameActive = false;
     clearTimeout(detectFacesTimeout);
     logEvent('Game ended');
     downloadButton.style.display = 'block';
