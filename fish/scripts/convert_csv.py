@@ -8,13 +8,14 @@
 #     python3 convert_csv.py <path_to_raw_csv_1> <path_to_raw_csv_2> ...
 # This will create a new file with the same name as the input file(s), but with '_simplified' appended to the name.
 
+import csv
 from statistics import mean
 import sys
 
 
 def convert_csv(file_path):
     with open(file_path, 'r') as file:
-        lines = file.readlines()
+        rows = list(csv.reader(file))
 
     # Initialize structures to store parsed data
     trials_data = []
@@ -22,11 +23,12 @@ def convert_csv(file_path):
     trial_number = None
 
     # Parse each line based on its type
-    for line in lines:
-        parts = line.strip().split(',', 2)
-        if len(parts) < 3:
+    for row in rows:
+        if len(row) < 3:
             continue
-        timestamp, event, metadata = parts
+        timestamp = row[0]
+        event = row[1]
+        metadata = ','.join(row[2:])
         if event == "Trial started":
             # Starting new trial
             trial_number = int(metadata)
