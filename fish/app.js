@@ -129,10 +129,16 @@ video.setAttribute('id', 'video');
 video.setAttribute('autoplay', 'muted');
 document.body.appendChild(video);
 
+const canvas = document.createElement('canvas');
+canvas.setAttribute('id', 'overlay');
+document.body.appendChild(canvas);
+
 if (show_video) {
     video.style.display = 'block';
+    canvas.style.display = 'block';
 } else {
     video.style.display = 'none';
+    canvas.style.display = 'none';
 }
 
 function setupWebcam() {
@@ -142,6 +148,15 @@ function setupWebcam() {
             video.srcObject = stream;
             video.onloadeddata = () => {
                 logEvent('Webcam ready');
+
+                // Match the canvas size with the video size
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+
+                // Set the size and position of the canvas to overlay the video
+                canvas.style.width = video.videoWidth + 'px';
+                canvas.style.height = video.videoHeight + 'px';
+
                 // Video is ready, can now let the user start the game
                 startGameButton.textContent = "Start game";
                 startGameButton.disabled = false;
@@ -158,7 +173,14 @@ const face_decetor_options = new faceapi.TinyFaceDetectorOptions();
 let detectFacesTimeout;
 async function detectFaces() {
     detections = await faceapi.detectAllFaces(video, face_decetor_options).withFaceExpressions();
+
+    // Clear the canvas before drawing the new detections
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+
     if (detections.length > 0) {
+        // Draw face detections onto the canvas
+        faceapi.draw.drawDetections(canvas, detections);
+
         // Iterate over each detection to log specific expressions or other properties
         detections.forEach((detection, index) => {
             let message = index == 0 ? 'Face detected' : `Face detected ${index + 1}`;

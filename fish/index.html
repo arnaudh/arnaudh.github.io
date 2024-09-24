@@ -47,6 +47,14 @@
         #countdown-display {
             display: none;  /* not showing since it seems to drift substantially from trials loop */
         }
+
+        #video, #overlay {
+            position: absolute;
+        }
+        #overlay {
+            z-index: 1; /* Ensure canvas is above the video */
+            pointer-events: none; /* Ensure the canvas does not block interactions with the video */
+        }
     </style>
 </head>
 <body>
