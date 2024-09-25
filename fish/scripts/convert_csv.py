@@ -86,7 +86,10 @@ def convert_csv(file_path):
                 starfish_image = data['metadata'][0]
             # TODO account for multiple fish clicks, and so multiple 'Average happy' events
             if data['event'] == 'Average happy' and average_happy is None:
-                average_happy = float(data['metadata'][0]) if data['metadata'] else None
+                if data['metadata'] and data['metadata'][0] and data['metadata'][0] != "null":
+                    average_happy = float(data['metadata'][0])
+                else:
+                    average_happy = None
             if data['event'] == 'Fish clicked correctly':
                 fish_clicked_correctly_count += 1
             if data['event'] == 'Fish clicked incorrectly':
