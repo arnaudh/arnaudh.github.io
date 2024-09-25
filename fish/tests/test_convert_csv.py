@@ -4,7 +4,7 @@ import pytest
 from convert_csv import convert_csv
 
 # Dynamically list all input files in the fixtures directory
-input_files = glob.glob('fixtures/input_*.csv')
+input_files = glob.glob('tests/fixtures/input_*.csv')
 
 @pytest.mark.parametrize("input_file", input_files)
 def test_convert_csv(input_file, request):
