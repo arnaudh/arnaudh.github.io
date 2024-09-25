@@ -29,3 +29,9 @@ Overwrite expected test outputs:
 ```bash
 pytest --overwrite
 ```
+
+
+If you want tests to run as a pre-commit hook:
+```bash
+pre-commit install
+```

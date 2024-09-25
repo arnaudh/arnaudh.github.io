@@ -1,0 +1,10 @@
+repos:
+  - repo: local
+    hooks:
+      - id: pytest
+        name: Run Pytest
+        entry: pytest -c fish/pytest.ini
+        language: system
+        types: [python]
+        files: ^fish/.*\.(py|js)$
+        pass_filenames: false

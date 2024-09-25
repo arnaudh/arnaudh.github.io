@@ -509,4 +509,3 @@ collectSystemInfo(function(info) {
         }
     });
 });
-

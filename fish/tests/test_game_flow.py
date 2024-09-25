@@ -6,8 +6,10 @@ import pytest
 from pathlib import Path
 
 PORT = 8000
-FIXTURES_DIR = Path('tests/fixtures/')
-VIDEO_FILE = FIXTURES_DIR / "video.y4m"
+
+TESTS_DIR = Path(__file__).parent
+FISH_DIR = TESTS_DIR.parent
+VIDEO_FILE = TESTS_DIR / "fixtures" / "video.y4m"
 
 def is_port_in_use(port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -27,7 +29,7 @@ def test_game_flow():
         server = None
     else:
         print(f"Starting server")
-        server = subprocess.Popen(['python', '-m', 'http.server', str(PORT)])
+        server = subprocess.Popen(['python', '-m', 'http.server', '--directory', FISH_DIR, str(PORT)])
         time.sleep(0.5)  # Give the server time to start
 
     try:
@@ -43,12 +45,12 @@ def test_game_flow():
         expected_simplified_csv_file.unlink(missing_ok=True)
 
         print(f"Running the game")
-        subprocess.run(['node', 'tests/test_game_flow.js', game_url, expected_downloaded_csv_file, VIDEO_FILE], check=True)
+        subprocess.run(['node', TESTS_DIR / "test_game_flow.js", game_url, expected_downloaded_csv_file, VIDEO_FILE], check=True)
 
         assert os.path.exists(expected_downloaded_csv_file), f"File not found: {expected_downloaded_csv_file}"
 
         print(f"Running convert_csv.py")
-        subprocess.run(['python', 'scripts/convert_csv.py', expected_downloaded_csv_file], check=True)
+        subprocess.run(['python', FISH_DIR / "scripts" / "convert_csv.py", expected_downloaded_csv_file], check=True)
 
         assert os.path.exists(expected_simplified_csv_file), f"File not found: {expected_simplified_csv_file}"
 

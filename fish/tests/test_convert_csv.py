@@ -1,14 +1,18 @@
+from pathlib import Path
 import os
 import glob
 import pytest
 from convert_csv import convert_csv
 
+TESTS_DIR = Path(__file__).parent
+
 # Dynamically list all input files in the fixtures directory
-input_files = glob.glob('tests/fixtures/input_*.csv')
+input_files = (TESTS_DIR / "fixtures").glob("input_*.csv")
 
 @pytest.mark.parametrize("input_file", input_files)
 def test_convert_csv(input_file, request):
     # Determine the expected output file based on input file name
+    input_file = str(input_file)
     expected_output_file = input_file.replace('input_', 'expected_output_')
 
     # Run the convert_csv function
