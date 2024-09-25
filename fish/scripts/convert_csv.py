@@ -62,6 +62,7 @@ def convert_csv(file_path):
         face_detected_count = 0
         no_face_detected_count = 0
         starfish_image = None
+        # TODO total happy and fearful
         average_happy = None
         fish_clicked_correctly_count = 0
         fish_clicked_incorrectly_count = 0
@@ -80,6 +81,7 @@ def convert_csv(file_path):
                 no_face_detected_count += 1
             if data['event'] == 'Starfish appeared':
                 starfish_image = data['metadata']
+            # TODO account for multiple fish clicks, and so multiple 'Average happy' events
             if data['event'] == 'Average happy' and average_happy is None:
                 average_happy = float(data['metadata']) if data['metadata'] else None
             if data['event'] == 'Fish clicked correctly':

@@ -405,26 +405,20 @@ function is_happy_face() {
         const totalHappy = faceDetections.reduce((sum, event) => sum + event.metadata.happy, 0.0);
         const totalFearful = faceDetections.reduce((sum, event) => sum + event.metadata.fearful, 0.0);
         const averageHappy = totalHappy / faceDetections.length;
-
+        logEvent('Average happy', averageHappy);
+        logEvent('Total happy', totalHappy);
+        logEvent('Total fearful', totalFearful);
         if (threshold_mode == 'percent') {
-            logEvent('Average happy', averageHappy);
             return averageHappy >= threshold;
         } else if (threshold_mode == 'ratio') {
-            logEvent('Total happy', totalHappy);
-            logEvent('Total fearful', totalFearful);
             return totalHappy > totalFearful;
         } else {
             error(`Unknown threshold_mode "${threshold_mode}"`)
         }
     } else {
-        if (threshold_mode == 'percent') {
-            logEvent('Average happy', null);
-        } else if (threshold_mode == 'ratio') {
-            logEvent('Total happy', null);
-            logEvent('Total fearful', null);
-        } else {
-            error(`Unknown threshold_mode "${threshold_mode}"`)
-        }
+        logEvent('Average happy', null);
+        logEvent('Total happy', null);
+        logEvent('Total fearful', null);
         return false;
     }
 }
