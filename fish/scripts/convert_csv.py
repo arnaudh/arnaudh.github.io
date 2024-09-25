@@ -27,18 +27,19 @@ def convert_csv(file_path):
     for row in rows:
         if len(row) < 3:
             continue
+        # print("row", row)
         timestamp = row[0]
         event = row[1]
-        metadata = ','.join(row[2:])
         if event == "Trial started":
             # Starting new trial
-            trial_number = int(metadata)
+            trial_number = int(row[2])
             if current_trial_data:
                 # Save previous trial data before starting new
                 trials_data.append(current_trial_data)
                 current_trial_data = []
         elif trial_number is not None:
             # Accumulate data for the current trial
+            metadata = row[2:]
             structured_data = {'timestamp': timestamp, 'event': event, 'metadata': metadata, 'trial_number': trial_number}
             current_trial_data.append(structured_data)
 
@@ -71,9 +72,12 @@ def convert_csv(file_path):
         for data in trial:
             if data['event'] == 'Face detected':
                 face_detected_count += 1
-                emotions = data['metadata'].split(',')
+                emotions = data['metadata']
+                print("emotions", emotions)
                 for i in range(0, len(emotions), 2):
                     emotion = emotions[i]
+                    if not emotion:
+                        break
                     value = float(emotions[i+1])
                     if emotion not in emotions_dict:
                         emotions_dict[emotion] = []
@@ -81,10 +85,11 @@ def convert_csv(file_path):
             if data['event'] == 'No face detected':
                 no_face_detected_count += 1
             if data['event'] == 'Starfish appeared':
-                starfish_image = data['metadata']
+                starfish_image = data['metadata'][0]
             # TODO account for multiple fish clicks, and so multiple 'Average happy' events
             if data['event'] == 'Average happy' and average_happy is None:
-                average_happy = float(data['metadata']) if data['metadata'] else None
+                print("here", data['metadata'])
+                average_happy = float(data['metadata'][0]) if data['metadata'] else None
             if data['event'] == 'Fish clicked correctly':
                 fish_clicked_correctly_count += 1
             if data['event'] == 'Fish clicked incorrectly':
