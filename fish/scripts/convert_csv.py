@@ -27,7 +27,6 @@ def convert_csv(file_path):
     for row in rows:
         if len(row) < 3:
             continue
-        # print("row", row)
         timestamp = row[0]
         event = row[1]
         if event == "Trial started":
@@ -73,7 +72,6 @@ def convert_csv(file_path):
             if data['event'] == 'Face detected':
                 face_detected_count += 1
                 emotions = data['metadata']
-                print("emotions", emotions)
                 for i in range(0, len(emotions), 2):
                     emotion = emotions[i]
                     if not emotion:
@@ -88,7 +86,6 @@ def convert_csv(file_path):
                 starfish_image = data['metadata'][0]
             # TODO account for multiple fish clicks, and so multiple 'Average happy' events
             if data['event'] == 'Average happy' and average_happy is None:
-                print("here", data['metadata'])
                 average_happy = float(data['metadata'][0]) if data['metadata'] else None
             if data['event'] == 'Fish clicked correctly':
                 fish_clicked_correctly_count += 1
