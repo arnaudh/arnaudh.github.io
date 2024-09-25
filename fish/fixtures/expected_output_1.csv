@@ -1,0 +1,4 @@
+trial_number,neutral,happy,sad,angry,fearful,disgusted,surprised,Average Happy,Face detected,No face detected,Fish clicked correctly,Fish clicked incorrectly,starfish_image
+1,0.58,0.0,0.42,0.0,0.0,0.0,0.0,nan,29,0,0,3,image4.png
+2,0.58,0.0,0.42,0.0,0.0,0.0,0.0,0.0,33,0,0,8,image6.png
+3,0.58,0.0,0.42,0.0,0.0,0.0,0.0,0.0,34,0,0,13,image7.png

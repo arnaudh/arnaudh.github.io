@@ -14,6 +14,7 @@ import sys
 
 
 def convert_csv(file_path):
+    print(f"Converting {file_path}")
     with open(file_path, 'r') as file:
         rows = list(csv.reader(file))
 
@@ -116,6 +117,7 @@ def convert_csv(file_path):
 
     return output_path
 
-# Convert each file passed as argument
-for file_path in sys.argv[1:]:
-    convert_csv(file_path)
+if __name__ == "__main__":
+    # Convert each file passed as argument
+    for file_path in sys.argv[1:]:
+        convert_csv(file_path)
