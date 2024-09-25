@@ -162,10 +162,13 @@ function setupWebcam() {
                 canvas.style.width = video.videoWidth + 'px';
                 canvas.style.height = video.videoHeight + 'px';
 
-                // Video is ready, can now let the user start the game
-                startGameButton.textContent = "Start game";
-                startGameButton.disabled = false;
-                startGameButton.addEventListener('click', startGame);
+                // Do 1 face detection to warm things up (Safari can take a while on the first one)
+                detectFaces(() => {
+                    // Everything is ready, can now let the user start the game
+                    startGameButton.textContent = "Start game";
+                    startGameButton.disabled = false;
+                    startGameButton.addEventListener('click', startGame);
+                })
             };
         })
         .catch(err => {
@@ -176,7 +179,7 @@ function setupWebcam() {
 const face_decetor_options = new faceapi.TinyFaceDetectorOptions();
 
 let detectFacesTimeout;
-async function detectFaces() {
+async function detectFaces(callback) {
     detections = await faceapi.detectAllFaces(video, face_decetor_options).withFaceExpressions();
 
     // Clear the canvas before drawing the new detections
@@ -198,6 +201,9 @@ async function detectFaces() {
     if (gameActive) {
         // Repeat
         detectFacesTimeout = setTimeout(detectFaces, detect_faces_interval);
+    }
+    if (callback) {
+        callback();
     }
 }
 
