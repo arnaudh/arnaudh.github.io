@@ -138,7 +138,11 @@ if (show_video) {
     video.style.display = 'block';
     canvas.style.display = 'block';
 } else {
-    video.style.display = 'none';
+    // Keep the video active, but set opacity to 0 to make it invisible.
+    // Note `display = 'none'` worked for Chrome and Firefox, but not for Safari (video stream was frozen).
+    // Setting `opacity = 0` works for all.
+    video.style.display = 'block';
+    video.style.opacity = '0';
     canvas.style.display = 'none';
 }
 
