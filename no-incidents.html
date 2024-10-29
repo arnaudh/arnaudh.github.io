@@ -5,89 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>No Incident Days Grid</title>
     <style>
-
         body {
-/*            margin: 0;*/
-/*            display: flex;*/
             justify-content: center;
-            align-items: flex-start; /* Align items to start (top) */
-            flex-direction: column; /* Stack items vertically */
-/*            min-height: 100vh;*/
-            background-color: #2c2c2c; /* Very dark grey background */
+            align-items: flex-start;
+            flex-direction: column;
+            background-color: #2c2c2c;
             font-family: Arial, sans-serif;
         }
-
         #latestMilestoneContainer {
             display: flex;
             justify-content: center;
             align-items: center;
             width: 100%;
-            margin: 50px auto 10px auto; /* Add margin to space it from the grid */
+            margin: 50px auto 10px auto;
             text-align: center;
-
             color: white;
         }
-
         #latestMilestoneContainer .emoji {
             aspect-ratio: 1;
-            width: 180px; /* Size of the circle */
+            width: 180px;
             height: 180px;
-            background-color: #e0ecf5; /* light grey */
-            border-radius: 50%; /* Circular shape */
+            background-color: #e0ecf5;
+            border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 8em; /* Size of the emoji inside the circle */
+            font-size: 8em;
             color: white;
         }
         #totalDaysContainer {
             color: white;
             font-size: 2em;
             margin: 10px auto;
-            width: 100%; /* Ensure it takes up the full width for horizontal centering */
-            text-align: center; /* Center the text inside the div */
+            width: 100%;
+            text-align: center;
         }
-
         #grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); /* Adjusts to available space */
+            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
             grid-gap: 5px;
-            width: 90%; /* Allow the grid to occupy full width */
-            justify-content: center; /* Center the grid horizontally */
-            margin: 50px auto 0 auto; /* Add gap at the top with margin-top */
+            width: 90%;
+            justify-content: center;
+            margin: 50px auto 0 auto;
         }
-
         .day {
-            aspect-ratio: 1; /* Ensure the element is perfectly square */
+            aspect-ratio: 1;
             position: relative;
             cursor: pointer;
-            border-radius: 50%; /* Make each cell circular */
+            border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 45px; /* Bigger font size */
+            font-size: 45px;
             color: white;
             transition: transform 0.2s;
         }
         .day:hover {
-            transform: scale(2); /* Slight zoom on hover */
+            transform: scale(2);
             z-index: 2;
         }
         .past-incident {
-            background-color: #e57373; /* red */
+            background-color: #e57373;
         }
         .past-day {
-            background-color: #e0ecf5; /* light grey */
+            background-color: #e0ecf5;
+            opacity: 0.5;
         }
         .past-milestone {
-            background-color: #e0ecf5; /* light grey */
+            background-color: #e0ecf5;
         }
         .future-day {
-            background-color: #455a64; /* dark grey */
+            background-color: #455a64;
         }
         .future-milestone {
-            background-color: #455a64; /* dark grey */
-
+            background-color: #455a64;
         }
         .tooltip {
             position: absolute;
@@ -95,7 +86,7 @@
             color: white;
             padding: 6px 10px;
             border-radius: 6px;
-            font-size: 1.2em; /* Larger tooltip font size */
+            font-size: 1.2em;
             z-index: 10;
             pointer-events: none;
             display: none;
@@ -103,7 +94,7 @@
     </style>
 </head>
 <body>
-    <div id="latestMilestoneContainer"></div> <!-- New container for the milestone emoji -->
+    <div id="latestMilestoneContainer"></div>
     <div id="totalDaysContainer">
         <span id="totalDays"></span> days
     </div>
@@ -112,7 +103,11 @@
 
     <script>
         const startDate = new Date("2024-08-13");
-        const lastIncidentDate = new Date("2024-08-13");
+        const incidentDates = [
+            new Date("2024-08-13"),
+            new Date("2024-10-04"),
+            new Date("2024-10-13"),
+        ];
         const endDate = new Date(startDate);
         endDate.setDate(startDate.getDate() + 365);
 
@@ -149,24 +144,27 @@
         const grid = document.getElementById("grid");
         const tooltip = document.getElementById("tooltip");
 
-        currentDate = new Date(new Date().setHours(0,0,0,0));
-
+        const lastIncidentDate = incidentDates[incidentDates.length - 1];
+        const currentDate = new Date(new Date().setHours(0,0,0,0));
         const totalDays = Math.floor((currentDate - lastIncidentDate) / (1000 * 60 * 60 * 24));
         document.getElementById('totalDays').innerText = totalDays;
 
-        // Find the latest unlocked milestone
         const latestMilestone = milestones.slice().reverse().find(m => m.days <= totalDays);
-
         if (latestMilestone) {
             const milestoneContainer = document.getElementById("latestMilestoneContainer");
             milestoneContainer.innerHTML = `<div class="emoji">${latestMilestone.emoji}</div>`;
         }
 
-        for (let d = new Date(new Date(startDate).setHours(0,0,0,0)); d <= endDate; d.setDate(d.getDate() + 1)) {
+        let lastIncidentIdx = 0;
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
             const dayElement = document.createElement("div");
             dayElement.className = "day";
 
-            const diffDays = Math.floor((d - lastIncidentDate) / (1000 * 60 * 60 * 24)) + 1;
+            if (d > incidentDates[lastIncidentIdx]) {
+                lastIncidentIdx += 1;
+            }
+            const lastIncident = incidentDates[lastIncidentIdx - 1] || startDate;
+            const diffDays = Math.floor((d - lastIncident) / (1000 * 60 * 60 * 24)) + 1;
             const milestone = milestones.find(m => m.days === diffDays);
             const dateStr = d.toDateString();
 
@@ -179,29 +177,28 @@
                     tooltip.innerHTML += `<br>${milestone.label}`;
                 }
             };
-
             dayElement.onmouseout = function() {
                 tooltip.style.display = "none";
             };
 
-            if (d.toDateString() === lastIncidentDate.toDateString()) {
+            if (incidentDates.some(date => date.toDateString() === d.toDateString())) {
                 dayElement.classList.add("past-incident");
-            } else if (d > lastIncidentDate && d < currentDate) {
+            } else if (d < lastIncidentDate) {
+                dayElement.classList.add("past-day");
                 if (milestone) {
                     dayElement.classList.add("past-milestone");
                     dayElement.innerHTML = milestone.emoji;
-                } else {
-                    dayElement.classList.add("past-day");
                 }
             } else if (d >= currentDate) {
+                dayElement.classList.add(milestone ? "future-milestone" : "future-day");
                 if (milestone) {
-                    dayElement.classList.add("future-milestone");
                     dayElement.innerHTML = "?";
-                } else {
-                    dayElement.classList.add("future-day");
                 }
             } else {
-                // dayElement.classList.add("white");
+                dayElement.classList.add(milestone ? "past-milestone" : "past-day");
+                if (milestone) {
+                    dayElement.innerHTML = milestone.emoji;
+                }
             }
 
             grid.appendChild(dayElement);
