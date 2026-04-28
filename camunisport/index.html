@@ -25,28 +25,29 @@
       color: var(--text);
     }
     .wrap {
-      max-width: 1200px;
+      max-width: 100%;
       margin: 0 auto;
-      padding: 18px;
+      padding: 6px;
     }
     .panel {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 12px;
+      border-radius: 8px;
+      padding: 6px;
+      margin-bottom: 6px;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 900px;
+      min-width: 660px;
     }
     th, td {
       border-bottom: 1px solid var(--line);
-      padding: 9px 10px;
+      padding: 4px 5px;
       text-align: left;
       white-space: nowrap;
-      font-size: 14px;
+      font-size: 12px;
+      line-height: 1.1;
     }
     th + th, td + td {
       border-left: 1px solid rgba(44, 63, 102, 0.4);
@@ -55,6 +56,7 @@
       position: sticky;
       top: 0;
       background: #edf2fa;
+      z-index: 4;
     }
     .day-head {
       text-align: center;
@@ -75,10 +77,11 @@
       border-left: 3px solid var(--line-strong) !important;
     }
     .subhead th {
-      top: 36px;
+      top: 24px;
       background: #ebf1fb;
       font-weight: 500;
       text-align: center;
+      z-index: 3;
     }
     .subhead th.day-weekday {
       background-color: #fbfdff;
@@ -87,30 +90,30 @@
       background-color: #d8e3f6;
     }
     .court-subcol {
-      width: 54px;
-      min-width: 54px;
-      max-width: 54px;
-      padding: 7px 4px;
+      width: 40px;
+      min-width: 40px;
+      max-width: 40px;
+      padding: 2px 1px;
     }
     .slot-available {
       background: rgba(108, 203, 134, 0.28);
       color: var(--good);
       text-align: center;
       font-weight: 600;
-      width: 54px;
-      min-width: 54px;
-      max-width: 54px;
-      padding: 7px 4px;
+      width: 40px;
+      min-width: 40px;
+      max-width: 40px;
+      padding: 2px 1px;
     }
     .slot-unavailable {
-      background: rgba(186, 199, 221, 0.3);
-      color: var(--muted);
+      background: rgba(238, 243, 250, 0.42);
+      color: #a3aec0;
       text-align: center;
       font-weight: 600;
-      width: 54px;
-      min-width: 54px;
-      max-width: 54px;
-      padding: 7px 4px;
+      width: 40px;
+      min-width: 40px;
+      max-width: 40px;
+      padding: 2px 1px;
     }
     .slot-available.day-weekday {
       background-color: rgba(141, 223, 163, 0.24);
@@ -119,16 +122,15 @@
       background-color: rgba(90, 176, 116, 0.36);
     }
     .slot-unavailable.day-weekday {
-      background-color: rgba(248, 251, 255, 0.96);
+      background-color: rgba(253, 254, 255, 0.99);
     }
     .slot-unavailable.day-weekend {
-      background-color: rgba(168, 183, 209, 0.36);
+      background-color: rgba(226, 233, 246, 0.48);
     }
-    .hour {
-      font-weight: 600;
-      background: #f1f5fb;
-      width: 66px;
-      min-width: 66px;
+    h1 {
+      margin: 0 0 4px 0;
+      font-size: 20px;
+      line-height: 1.1;
     }
     .muted { color: var(--muted); }
     .error {
@@ -291,9 +293,6 @@
 
         thead.innerHTML = "";
         const trDays = document.createElement("tr");
-        const thHour = document.createElement("th");
-        thHour.textContent = "Hour";
-        trDays.appendChild(thHour);
         for (const day of days) {
           const th = document.createElement("th");
           th.textContent = day.label;
@@ -305,9 +304,6 @@
 
         const trCourts = document.createElement("tr");
         trCourts.className = "subhead";
-        const thBlank = document.createElement("th");
-        thBlank.textContent = "";
-        trCourts.appendChild(thBlank);
         for (const day of days) {
           if (courts.length === 0) {
             const th = document.createElement("th");
@@ -330,16 +326,13 @@
         tbody.innerHTML = "";
         for (const hour of hours) {
           const tr = document.createElement("tr");
-          const tdHour = document.createElement("td");
-          tdHour.className = "hour";
-          tdHour.textContent = hourLabel(hour);
-          tr.appendChild(tdHour);
+          const hourText = hourLabel(hour);
 
           for (const day of days) {
             if (courts.length === 0) {
               const td = document.createElement("td");
               td.className = "slot-unavailable";
-              td.textContent = "";
+              td.textContent = hourText;
               tr.appendChild(td);
               continue;
             }
@@ -350,7 +343,7 @@
               td.className = `${available ? "slot-available" : "slot-unavailable"}${
                 i === 0 ? " day-start" : ""
               } ${day.weekend ? "day-weekend" : "day-weekday"}`;
-              td.textContent = "";
+              td.textContent = hourText;
               tr.appendChild(td);
             }
           }
@@ -377,7 +370,7 @@
         const day = parts.find((p) => p.type === "day")?.value || "";
         const hour = parts.find((p) => p.type === "hour")?.value || "";
         const minute = parts.find((p) => p.type === "minute")?.value || "";
-        meta.textContent = `Last updated: ${weekday} ${day} at ${hour}:${minute} (UK time)`;
+        meta.textContent = `Last updated: ${weekday} ${day} at ${hour}:${minute}`;
       }
 
       async function load() {
