@@ -11,12 +11,8 @@ Behavior:
 - It deploys to GitHub Pages directly from artifact (no git commit needed for data updates).
 - Manual runs support `dry_run=true` to test refresh without deploying.
 
-Set these repository secrets in `arnaudh.github.io`:
-- `CAM_UNI_SPORTS_USERNAME` (optional)
-- `CAM_UNI_SPORTS_PASSWORD` (optional)
-
 Notes:
-- If credentials are not required by the upstream API, you can leave them unset.
+- The fetch script runs without repository secrets.
 - If refresh fails, deployment fails and the previously deployed Pages version remains live.
 
 Deploy/test checklist:

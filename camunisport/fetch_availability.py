@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
-import os
 import sys
 import urllib.error
 import urllib.parse
@@ -35,8 +34,6 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--club-id", type=int, default=CLUB_ID_DEFAULT)
     p.add_argument("--host", default=HOST_DEFAULT)
     p.add_argument("--locale", default=LOCALE_DEFAULT)
-    p.add_argument("--username", default=os.getenv("CAM_UNI_SPORTS_USERNAME", ""))
-    p.add_argument("--password", default=os.getenv("CAM_UNI_SPORTS_PASSWORD", ""))
     return p.parse_args()
 
 
@@ -89,18 +86,13 @@ def extract_gs_credentials(home_json: dict[str, Any]) -> GSCredentials:
     return GSCredentials(base_url=base_url.rstrip("/"), api_key=api_key)
 
 
-def fetch_activity_list(
-    gs: GSCredentials, locale: str, username: str, password: str
-) -> dict[str, Any]:
+def fetch_activity_list(gs: GSCredentials, locale: str) -> dict[str, Any]:
     url = f"{gs.base_url}/api/activity/list"
     headers = {
         "Accept": "application/json",
         "AuthenticationKey": gs.api_key,
         "User-Agent": APP_USER_AGENT_DEFAULT,
     }
-    if username and password:
-        headers["user"] = username
-        headers["pw"] = password
     return _json_get(url, params={"locale": locale, "globalInfo": 1}, headers=headers)
 
 
@@ -110,8 +102,6 @@ def fetch_activity_availability(
     from_utc: int,
     to_utc: int,
     locale: str,
-    username: str,
-    password: str,
 ) -> dict[str, Any]:
     url = f"{gs.base_url}/api/activity/availability"
     headers = {
@@ -119,9 +109,6 @@ def fetch_activity_availability(
         "AuthenticationKey": gs.api_key,
         "User-Agent": APP_USER_AGENT_DEFAULT,
     }
-    if username and password:
-        headers["user"] = username
-        headers["pw"] = password
     params = {
         "locale": locale,
         "activityId": activity_id,
@@ -177,7 +164,7 @@ def main() -> int:
     try:
         home = fetch_home_config(args.host, args.club_id, args.locale)
         gs = extract_gs_credentials(home)
-        activity_list_json = fetch_activity_list(gs, args.locale, args.username, args.password)
+        activity_list_json = fetch_activity_list(gs, args.locale)
     except urllib.error.HTTPError as e:
         print(f"[HTTP ERROR] {e.code}: {e.reason}", file=sys.stderr)
         return 2
@@ -207,8 +194,6 @@ def main() -> int:
                 now_utc,
                 to_utc,
                 args.locale,
-                args.username,
-                args.password,
             )
             slots: list[dict[str, Any]] = []
             for bookable in av.get("bookableItems", []):
