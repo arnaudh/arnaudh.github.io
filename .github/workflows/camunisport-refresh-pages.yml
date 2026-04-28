@@ -42,8 +42,6 @@ jobs:
           CAM_UNI_SPORTS_PASSWORD: ${{ secrets.CAM_UNI_SPORTS_PASSWORD }}
         run: |
           python camunisport/fetch_availability.py \
-            --keyword padel \
-            --days 7 \
             --json-out camunisport/availability.json
 
       - name: Validate generated JSON
