@@ -9,7 +9,8 @@ on:
         type: boolean
         default: true
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "0 0,6-23 * * *"
+      timezone: "Europe/London"
 
 permissions:
   contents: read
