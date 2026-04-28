@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CamUniSport Padel Availability</title>
+  <style>
+    :root {
+      --bg: #f7f8fb;
+      --panel: #ffffff;
+      --text: #152238;
+      --muted: #5f6f88;
+      --line: #d8dfeb;
+      --line-strong: #a6b6cf;
+      --good: #1f8d46;
+      --bad: #c43d3d;
+      --weekday-tint: rgba(255, 255, 255, 0.92);
+      --weekend-tint: rgba(70, 90, 125, 0.14);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 9px 10px;
+      text-align: left;
+      white-space: nowrap;
+      font-size: 14px;
+    }
+    th + th, td + td {
+      border-left: 1px solid rgba(44, 63, 102, 0.4);
+    }
+    th {
+      position: sticky;
+      top: 0;
+      background: #edf2fa;
+    }
+    .day-head {
+      text-align: center;
+    }
+    .day-weekday {
+      background-color: var(--weekday-tint);
+    }
+    .day-weekend {
+      background-color: var(--weekend-tint);
+    }
+    .day-head.day-weekday {
+      background-color: #fdfefe;
+    }
+    .day-head.day-weekend {
+      background-color: #dde6f5;
+    }
+    .day-start {
+      border-left: 3px solid var(--line-strong) !important;
+    }
+    .subhead th {
+      top: 36px;
+      background: #ebf1fb;
+      font-weight: 500;
+      text-align: center;
+    }
+    .subhead th.day-weekday {
+      background-color: #fbfdff;
+    }
+    .subhead th.day-weekend {
+      background-color: #d8e3f6;
+    }
+    .court-subcol {
+      width: 54px;
+      min-width: 54px;
+      max-width: 54px;
+      padding: 7px 4px;
+    }
+    .slot-available {
+      background: rgba(108, 203, 134, 0.28);
+      color: var(--good);
+      text-align: center;
+      font-weight: 600;
+      width: 54px;
+      min-width: 54px;
+      max-width: 54px;
+      padding: 7px 4px;
+    }
+    .slot-unavailable {
+      background: rgba(186, 199, 221, 0.3);
+      color: var(--muted);
+      text-align: center;
+      font-weight: 600;
+      width: 54px;
+      min-width: 54px;
+      max-width: 54px;
+      padding: 7px 4px;
+    }
+    .slot-available.day-weekday {
+      background-color: rgba(141, 223, 163, 0.24);
+    }
+    .slot-available.day-weekend {
+      background-color: rgba(90, 176, 116, 0.36);
+    }
+    .slot-unavailable.day-weekday {
+      background-color: rgba(248, 251, 255, 0.96);
+    }
+    .slot-unavailable.day-weekend {
+      background-color: rgba(168, 183, 209, 0.36);
+    }
+    .hour {
+      font-weight: 600;
+      background: #f1f5fb;
+      width: 66px;
+      min-width: 66px;
+    }
+    .muted { color: var(--muted); }
+    .error {
+      color: var(--bad);
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>CamUniSport Padel Availability</h1>
+    <div class="panel">
+      <div id="meta">Loading...</div>
+    </div>
+    <div class="panel" style="overflow:auto;">
+      <table id="table">
+        <thead id="thead"></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div id="error" class="error"></div>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const thead = document.getElementById("thead");
+      const tbody = document.getElementById("tbody");
+      const meta = document.getElementById("meta");
+      const error = document.getElementById("error");
+
+      function pad2(n) {
+        return String(n).padStart(2, "0");
+      }
+
+      function hourLabel(hour) {
+        return `${pad2(hour)}:00`;
+      }
+
+      function dayId(dateObj) {
+        return `${dateObj.getFullYear()}-${pad2(dateObj.getMonth() + 1)}-${pad2(
+          dateObj.getDate()
+        )}`;
+      }
+
+      function dayLabel(dateObj) {
+        return dateObj.toLocaleDateString(undefined, {
+          weekday: "short",
+          day: "2-digit",
+          month: "2-digit",
+        });
+      }
+
+      function isWeekend(dateObj) {
+        const day = dateObj.getDay();
+        return day === 0 || day === 6;
+      }
+
+      function parseCourtLabel(rawName) {
+        const match = String(rawName || "").match(/court\s*(\d+)/i);
+        if (match) return { label: `Court ${match[1]}`, order: Number(match[1]) };
+        const normalized = String(rawName || "").trim();
+        return { label: normalized || "Court", order: Number.POSITIVE_INFINITY };
+      }
+
+      function shortCourtLabel(label) {
+        const match = String(label || "").match(/court\s*(\d+)/i);
+        if (match) return `C${match[1]}`;
+        return label;
+      }
+
+      function toIntOr(value, fallback) {
+        const n = Number.parseInt(value, 10);
+        return Number.isFinite(n) ? n : fallback;
+      }
+
+      function parseSlotCounts(slot) {
+        if ("available" in slot || "total" in slot) {
+          return {
+            available: toIntOr(slot.available, 0),
+            total: toIntOr(slot.total, 0),
+          };
+        }
+        const status = toIntOr(slot.s, -1);
+        if (status === 1) return { available: 1, total: 1 };
+        if (status >= 0) return { available: 0, total: 1 };
+        return { available: 0, total: 0 };
+      }
+
+      function parseSlotStartUtcMs(slot) {
+        const rawStart = slot.start_utc;
+        if (typeof rawStart === "string" && rawStart.trim()) {
+          const d = new Date(rawStart.replace(/\s+\([^)]*\)\s*$/, ""));
+          if (!Number.isNaN(d.getTime())) return d.getTime();
+        }
+        const sUtc = toIntOr(slot.sUTC, 0);
+        if (sUtc > 0) return sUtc * 1000;
+        return null;
+      }
+
+      function extractSlots(payload) {
+        const out = [];
+        for (const item of payload.results || []) {
+          for (const s of item.slots || []) {
+            const slotCounts = parseSlotCounts(s);
+            const startMs = parseSlotStartUtcMs(s);
+            if (startMs == null) continue;
+            const d = new Date(startMs);
+            const court = parseCourtLabel(s.bookable_item_name || "");
+            out.push({
+              day: dayId(d),
+              dayLabel: dayLabel(d),
+              dayTs: new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(),
+              weekend: isWeekend(d),
+              hour: d.getHours(),
+              court: court.label,
+              courtOrder: court.order,
+              available: slotCounts.available > 0,
+            });
+          }
+        }
+        return out;
+      }
+
+      function buildGrid(slots) {
+        const dayMap = new Map();
+        const courtMap = new Map();
+        const cellMap = new Map();
+        const hourSet = new Set();
+        for (const slot of slots) {
+          if (!dayMap.has(slot.day)) {
+            dayMap.set(slot.day, {
+              id: slot.day,
+              label: slot.dayLabel,
+              ts: slot.dayTs,
+              weekend: slot.weekend,
+            });
+          }
+          if (!courtMap.has(slot.court)) {
+            courtMap.set(slot.court, { label: slot.court, order: slot.courtOrder });
+          }
+          hourSet.add(slot.hour);
+          const key = `${slot.day}|${slot.court}|${slot.hour}`;
+          const prev = cellMap.get(key) || false;
+          cellMap.set(key, prev || slot.available);
+        }
+
+        const days = [...dayMap.values()].sort((a, b) => a.ts - b.ts);
+        const courts = [...courtMap.values()]
+          .sort((a, b) => a.order - b.order || a.label.localeCompare(b.label))
+          .slice(0, 2);
+        const hours = [...hourSet].sort((a, b) => a - b);
+
+        return { days, courts, hours, cellMap };
+      }
+
+      function renderGrid(grid) {
+        const { days, courts, hours, cellMap } = grid;
+
+        thead.innerHTML = "";
+        const trDays = document.createElement("tr");
+        const thHour = document.createElement("th");
+        thHour.textContent = "Hour";
+        trDays.appendChild(thHour);
+        for (const day of days) {
+          const th = document.createElement("th");
+          th.textContent = day.label;
+          th.colSpan = Math.max(courts.length, 1);
+          th.className = `day-head day-start ${day.weekend ? "day-weekend" : "day-weekday"}`;
+          trDays.appendChild(th);
+        }
+        thead.appendChild(trDays);
+
+        const trCourts = document.createElement("tr");
+        trCourts.className = "subhead";
+        const thBlank = document.createElement("th");
+        thBlank.textContent = "";
+        trCourts.appendChild(thBlank);
+        for (const day of days) {
+          if (courts.length === 0) {
+            const th = document.createElement("th");
+            th.textContent = "-";
+            th.className = `court-subcol day-start ${day.weekend ? "day-weekend" : "day-weekday"}`;
+            trCourts.appendChild(th);
+            continue;
+          }
+          for (const [i, court] of courts.entries()) {
+            const th = document.createElement("th");
+            th.textContent = shortCourtLabel(court.label);
+            th.className = `court-subcol${i === 0 ? " day-start" : ""} ${
+              day.weekend ? "day-weekend" : "day-weekday"
+            }`;
+            trCourts.appendChild(th);
+          }
+        }
+        thead.appendChild(trCourts);
+
+        tbody.innerHTML = "";
+        for (const hour of hours) {
+          const tr = document.createElement("tr");
+          const tdHour = document.createElement("td");
+          tdHour.className = "hour";
+          tdHour.textContent = hourLabel(hour);
+          tr.appendChild(tdHour);
+
+          for (const day of days) {
+            if (courts.length === 0) {
+              const td = document.createElement("td");
+              td.className = "slot-unavailable";
+              td.textContent = "";
+              tr.appendChild(td);
+              continue;
+            }
+            for (const [i, court] of courts.entries()) {
+              const key = `${day.id}|${court.label}|${hour}`;
+              const available = cellMap.get(key) === true;
+              const td = document.createElement("td");
+              td.className = `${available ? "slot-available" : "slot-unavailable"}${
+                i === 0 ? " day-start" : ""
+              } ${day.weekend ? "day-weekend" : "day-weekday"}`;
+              td.textContent = "";
+              tr.appendChild(td);
+            }
+          }
+          tbody.appendChild(tr);
+        }
+      }
+
+      function formatMeta(payload) {
+        const updatedRaw = payload?.meta?.generated_at_utc;
+        const updated = updatedRaw ? new Date(updatedRaw) : null;
+        if (!updated || Number.isNaN(updated.getTime())) {
+          meta.textContent = "Last updated: -";
+          return;
+        }
+        const parts = new Intl.DateTimeFormat("en-GB", {
+          weekday: "short",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+          timeZone: "Europe/London",
+        }).formatToParts(updated);
+        const weekday = parts.find((p) => p.type === "weekday")?.value || "";
+        const day = parts.find((p) => p.type === "day")?.value || "";
+        const hour = parts.find((p) => p.type === "hour")?.value || "";
+        const minute = parts.find((p) => p.type === "minute")?.value || "";
+        meta.textContent = `Last updated: ${weekday} ${day} at ${hour}:${minute} (UK time)`;
+      }
+
+      async function load() {
+        try {
+          const response = await fetch("./availability.json", { cache: "no-store" });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const payload = await response.json();
+          const slots = extractSlots(payload);
+          const grid = buildGrid(slots);
+          renderGrid(grid);
+          formatMeta(payload);
+        } catch (e) {
+          meta.textContent = "Load failed.";
+          error.textContent = `Failed to load availability.json\n${String(e)}`;
+        }
+      }
+
+      load();
+    })();
+  </script>
+</body>
+</html>
