@@ -1,0 +1,65 @@
+name: CamUniSport Refresh And Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Run refresh only (skip Pages deploy)"
+        required: false
+        type: boolean
+        default: true
+  schedule:
+    - cron: "*/30 * * * *"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  refresh-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Refresh CamUniSport JSON
+        env:
+          CAM_UNI_SPORTS_USERNAME: ${{ secrets.CAM_UNI_SPORTS_USERNAME }}
+          CAM_UNI_SPORTS_PASSWORD: ${{ secrets.CAM_UNI_SPORTS_PASSWORD }}
+        run: |
+          python camunisport/fetch_availability.py \
+            --keyword padel \
+            --days 7 \
+            --json-out camunisport/availability.json
+
+      - name: Validate generated JSON
+        run: python -m json.tool camunisport/availability.json > /dev/null
+
+      - name: Configure Pages
+        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.dry_run }}
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.dry_run }}
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.dry_run }}
+        id: deployment
+        uses: actions/deploy-pages@v4
